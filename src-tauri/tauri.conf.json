@@ -17,7 +17,7 @@
   },
   "plugins": {
     "updater": {
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDcyQUQzQ0EyN0JGQzg5OTgKUldTWWlmeDdvanl0Y204RG01UHdBSXlqcnRZV1hGbzFyWjBIaXZzNnFvTHlOc1ZuOVlLTVB5dDMK",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDM4RUZERjNGQjA5QjEyRDAKUldUUUVwdXdQOS92T0huZ2NrTWN2RmJMc3BDeVNmdVcxcVArL01YeXpjVTFiNGpBc1NwcklnWnEK",
       "endpoints": [
         "https://github.com/yixin8875/traderclock/releases/latest/download/latest.json"
       ]
