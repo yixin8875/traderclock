@@ -89,6 +89,22 @@ jobs:
         with:
           workspaces: src-tauri -> target
 
+      - name: 检查更新签名密钥
+        shell: bash
+        env:
+          KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: |
+          if [ -z "${KEY}" ]; then
+            echo "::error::缺少仓库 Secret TAURI_SIGNING_PRIVATE_KEY，无法生成可自动更新的安装包。"
+            echo "请在 Settings → Secrets and variables → Actions 添加该 Secret 后重试。"
+            exit 1
+          fi
+          if [ -z "${KEY_PASSWORD}" ]; then
+            echo "::error::缺少仓库 Secret TAURI_SIGNING_PRIVATE_KEY_PASSWORD。"
+            exit 1
+          fi
+
       - name: 构建并发布
         uses: tauri-apps/tauri-action@v0
         env:
