@@ -1,0 +1,109 @@
+name: Release
+
+# 推送到 main：自动递增补丁号、打 tag、构建并发布。
+# 推送 v* tag：按 tag 里的版本号构建并发布（本地 npm run release:patch 会走到这里）。
+# 提交信息里带 [skip release] 时跳过 main 分支的自动发版。
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "指定版本号（x.y.z，留空则自动递增补丁号）"
+        required: false
+        type: string
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')) ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/main' && !contains(github.event.head_commit.message, '[skip release]'))
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 计算版本号
+        id: version
+        shell: bash
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          set -e
+          CURRENT=$(node -p "require('./package.json').version")
+          if [ "${{ github.event_name }}" = "push" ] && [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            VERSION="${GITHUB_REF#refs/tags/v}"
+            node scripts/release-version.mjs --set "$VERSION" > /dev/null
+          elif [ -n "${INPUT_VERSION}" ]; then
+            VERSION="${INPUT_VERSION}"
+            node scripts/release-version.mjs --set "$VERSION" > /dev/null
+          elif git tag --list "v${CURRENT}" | grep -q .; then
+            VERSION=$(node scripts/release-version.mjs --bump patch)
+          else
+            VERSION="${CURRENT}"
+            node scripts/release-version.mjs --set "$VERSION" > /dev/null
+          fi
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "tag=v${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "本次发版：v${VERSION}"
+
+      - name: 提交版本号并打 tag
+        if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
+        shell: bash
+        run: |
+          set -e
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet -- package.json package-lock.json src-tauri/tauri.conf.json src-tauri/Cargo.toml src-tauri/Cargo.lock; then
+            echo "版本号未变化，只补 tag"
+          else
+            git add package.json package-lock.json src-tauri/tauri.conf.json src-tauri/Cargo.toml src-tauri/Cargo.lock
+            git commit -m "chore(release): v${{ steps.version.outputs.version }}"
+            git push origin HEAD:main
+          fi
+          git tag "v${{ steps.version.outputs.version }}" 2>/dev/null || true
+          git push origin "v${{ steps.version.outputs.version }}"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: 安装前端依赖
+        run: npm ci
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri -> target
+
+      - name: 构建并发布
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          tagName: v${{ steps.version.outputs.version }}
+          releaseName: TradeClock v${{ steps.version.outputs.version }}
+          releaseBody: |
+            从下方 Assets 下载 `TradeClock_${{ steps.version.outputs.version }}_x64-setup.exe` 安装。
+            已安装旧版本的用户无需手动下载：程序启动后会自动检查更新，在“设置 → 关于与更新”里一键升级。
+
+            自动更新签名验证已开启，更新清单见本页的 `latest.json`。
+          releaseDraft: false
+          prerelease: false
+          includeUpdaterJson: true
+          updaterJsonPreferNsis: true

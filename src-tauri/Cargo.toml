@@ -1,0 +1,39 @@
+[package]
+name = "tradeclock"
+version = "0.1.0"
+description = "固定周期看盘提醒"
+edition = "2021"
+
+[lib]
+name = "tradeclock_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2.2.0", features = [] }
+
+[dependencies]
+tauri = { version = "2.5.1", features = ["tray-icon", "image-png"] }
+tauri-plugin-autostart = "2.3.0"
+tauri-plugin-global-shortcut = "2.2.1"
+tauri-plugin-notification = "2.2.2"
+tauri-plugin-single-instance = "2.2.4"
+tauri-plugin-updater = "2"
+tauri-plugin-process = "2"
+serde = { version = "1.0.219", features = ["derive"] }
+serde_json = "1.0.140"
+chrono = { version = "0.4.41", features = ["serde"] }
+chrono-tz = "0.10.3"
+# 播放提示音（WAV / MP3 / OGG / FLAC）
+rodio = "0.20.1"
+# 语音播报，Windows 上使用系统自带的语音引擎
+tts = "0.26.3"
+# 下载财经日历周数据（自带 TLS，不依赖系统 OpenSSL）
+ureq = { version = "2.12.1", features = ["json"] }
+
+[profile.release]
+# 体积和内存优先
+opt-level = "s"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true

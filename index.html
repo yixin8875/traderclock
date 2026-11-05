@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TradeClock</title>
+    <script src="/theme-init.js"></script>
+    <!-- 启动动画：纯 HTML/CSS，不等 React 和打包代码，页面一出来就能画 -->
+    <style>
+      html, body { margin: 0; height: 100%; }
+      html { background: #fff; }
+      [data-theme="dark"] { background: #141a21; }
+      #splash {
+        position: fixed; inset: 0; z-index: 50; display: flex; flex-direction: column;
+        align-items: center; justify-content: center; gap: 22px; background: #fff;
+        font: 13px "Segoe UI Variable Text", "Segoe UI", "Microsoft YaHei UI", sans-serif; color: #6b7684;
+        transition: opacity .3s ease, transform .3s ease;
+      }
+      #splash.out { opacity: 0; transform: scale(1.03); pointer-events: none; }
+
+      /* 表盘：琥珀色圆环像倒计时一样转一圈填满，指针跟着扫 */
+      .dial { position: relative; width: 72px; height: 72px; }
+      .dial svg { position: absolute; inset: 0; }
+      .track { fill: none; stroke: #eef1f5; stroke-width: 6; }
+      .fill {
+        fill: none; stroke: #f0a020; stroke-width: 6; stroke-linecap: round;
+        stroke-dasharray: 188.5; stroke-dashoffset: 188.5; transform: rotate(-90deg); transform-origin: 36px 36px;
+        animation: fill 1.6s cubic-bezier(.6,.1,.3,1) infinite;
+      }
+      .hand { stroke: #18202b; stroke-width: 4; stroke-linecap: round; transform-origin: 36px 36px; animation: sweep 1.6s cubic-bezier(.6,.1,.3,1) infinite; }
+      .hub { fill: #18202b; }
+      @keyframes fill { 0% { stroke-dashoffset: 188.5; } 70%, 100% { stroke-dashoffset: 0; } }
+      @keyframes sweep { 0% { transform: rotate(0); } 70%, 100% { transform: rotate(360deg); } }
+      /* 填满那一下表盘轻轻一跳，像“到点” */
+      .dial { animation: tick 1.6s ease-out infinite; }
+      @keyframes tick { 0%, 68% { transform: scale(1); } 76% { transform: scale(1.08); } 90%, 100% { transform: scale(1); } }
+
+      /* 下面一排小 K 线依次长出来，一阳一阴 */
+      .candles { display: flex; align-items: flex-end; gap: 7px; height: 30px; }
+      .candles i { position: relative; display: block; width: 7px; border-radius: 2px; transform-origin: bottom; animation: grow 1.6s ease-in-out infinite; }
+      .candles i::before { content: ""; position: absolute; left: 3px; width: 1px; top: -5px; bottom: -4px; background: inherit; opacity: .55; }
+      .candles i:nth-child(odd) { background: #18202b; }
+      .candles i:nth-child(even) { background: #c9d0d9; }
+      .candles i:nth-child(1) { height: 12px; animation-delay: 0s; }
+      .candles i:nth-child(2) { height: 20px; animation-delay: .1s; }
+      .candles i:nth-child(3) { height: 15px; animation-delay: .2s; }
+      .candles i:nth-child(4) { height: 26px; animation-delay: .3s; }
+      .candles i:nth-child(5) { height: 18px; animation-delay: .4s; }
+      .candles i:nth-child(6) { height: 24px; animation-delay: .5s; background: #f0a020; }
+      @keyframes grow { 0% { transform: scaleY(.15); opacity: .3; } 35%, 75% { transform: scaleY(1); opacity: 1; } 100% { transform: scaleY(.15); opacity: .3; } }
+
+      #splash-msg { height: 18px; transition: opacity .2s; }
+
+      [data-theme="dark"] #splash { background: #141a21; color: #9aa7b5; }
+      [data-theme="dark"] .track { stroke: #2b3541; }
+      [data-theme="dark"] .hand { stroke: #e6edf3; }
+      [data-theme="dark"] .hub { fill: #e6edf3; }
+      [data-theme="dark"] .candles i:nth-child(odd) { background: #e6edf3; }
+      [data-theme="dark"] .candles i:nth-child(even) { background: #3a4653; }
+
+      @media (prefers-reduced-motion: reduce) {
+        .fill, .hand, .dial, .candles i { animation: none; }
+        .fill { stroke-dashoffset: 47; }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="splash" role="status" aria-label="TradeClock 正在启动">
+      <div class="dial" aria-hidden="true">
+        <svg viewBox="0 0 72 72">
+          <circle class="track" cx="36" cy="36" r="30" />
+          <circle class="fill" cx="36" cy="36" r="30" />
+          <line class="hand" x1="36" y1="36" x2="36" y2="16" />
+          <circle class="hub" cx="36" cy="36" r="4" />
+        </svg>
+      </div>
+      <div class="candles" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <div id="splash-msg">正在对表…</div>
+    </div>
+    <div id="root"></div>
+    <!-- 普通脚本，不经过打包，立即运行：通知后台显示窗口，并轮换提示文字 -->
+    <script src="/splash.js"></script>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

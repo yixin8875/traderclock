@@ -1,0 +1,7 @@
+{
+  "version": "",
+  "note": "节假日已按规则自动计算（src/engine/holidays.rs）。这里只写规则之外的临时调整，日期为交易日（时段结束的那一天），时间为芝加哥时间。closed=增加全天休市；early_close=增加或修改提前收盘；normal=规则算出但实际照常交易的日期。",
+  "closed": {},
+  "early_close": {},
+  "normal": {}
+}

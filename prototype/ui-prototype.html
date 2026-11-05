@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TradeClock UI 原型</title>
+<style>
+:root{
+  color-scheme: light;
+  --desk:#E9EDF2;     /* 桌面背景 */
+  --panel:#FFFFFF;    /* 窗口 */
+  --soft:#F5F7FA;     /* 次级底色 */
+  --line:#E4E8EE;     /* 分隔线 */
+  --text:#18202B;     /* 正文 */
+  --mute:#6B7684;     /* 次要文字 */
+  --amber:#F0A020;    /* 强调：到点（填充） */
+  --amber-ink:#A86400;/* 强调：文字 */
+  --asia:#D9ECF5; --eu:#E1E4FA; --us:#EFE1F4; --halt:#F7DCDC;
+  --num:"Bahnschrift","DIN Alternate","Segoe UI Variable Display",sans-serif;
+  --ui:"Segoe UI Variable Text","Segoe UI","Microsoft YaHei UI","Microsoft YaHei",sans-serif;
+}
+*{box-sizing:border-box;margin:0}
+body{background:#DDE2E9;color:var(--text);font:14px/1.5 var(--ui);padding:28px;min-height:100vh}
+.num{font-family:var(--num);font-variant-numeric:tabular-nums}
+.note{max-width:1180px;margin:0 auto 14px;color:var(--mute);font-size:13px}
+.note b{color:var(--text);font-weight:600}
+.desk{position:relative;max-width:1180px;margin:0 auto;min-height:800px;border-radius:12px;
+  background:linear-gradient(160deg,#F1F4F8,#E3E8EF);overflow:hidden}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* 设置窗口 */
+.win{position:absolute;left:44px;top:86px;width:860px;height:590px;background:var(--panel);
+  border-radius:12px;display:grid;grid-template-columns:176px 1fr;grid-template-rows:40px 1fr;
+  box-shadow:0 1px 2px rgba(20,30,45,.06),0 18px 50px -12px rgba(20,30,45,.22)}
+.titlebar{grid-column:1/3;display:flex;align-items:center;justify-content:space-between;padding:0 6px 0 18px;font-size:12.5px;color:var(--mute)}
+.titlebar .ctl{display:flex}.titlebar .ctl span{width:40px;text-align:center;line-height:40px}
+.brand{display:flex;align-items:center;gap:8px;color:var(--text);font-weight:600}
+nav{padding:6px 10px 14px;display:flex;flex-direction:column;gap:2px;background:var(--soft);border-radius:0 0 0 12px}
+nav button{background:none;border:0;text-align:left;padding:8px 12px;border-radius:8px;color:var(--mute)}
+nav button:hover{color:var(--text)}
+nav button[aria-current=true]{background:#fff;color:var(--text);font-weight:600;box-shadow:0 1px 2px rgba(20,30,45,.08)}
+nav .foot{margin-top:auto;font-size:12px;color:var(--mute);padding:8px 12px}
+main{padding:20px 30px 24px;overflow:auto}
+.head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.head h1{font-size:15px;font-weight:600;color:var(--mute)}
+.dst{font-size:12px;color:var(--amber-ink);background:#FFF3DF;padding:3px 10px;border-radius:99px}
+
+/* 下一次提醒 */
+.next{display:flex;align-items:center;gap:24px;margin-bottom:26px}
+.next .cd{font-size:60px;line-height:1;font-weight:600;letter-spacing:-1px;min-width:180px}
+.next .cd.hot{color:var(--amber-ink)}
+.next .meta{color:var(--mute);font-size:13px}
+.next .meta strong{display:block;color:var(--text);font-size:17px;font-weight:600;margin-bottom:2px}
+.pause{margin-left:auto;background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:7px 14px;font-size:13px}
+.pause:hover{background:#EDF0F4}
+
+/* 时间轴 */
+.tl{position:relative;height:118px;margin:22px 0 22px}
+.tl .band{position:absolute;height:20px;border-radius:5px;font-size:11.5px;line-height:20px;
+  padding:0 7px;white-space:nowrap;overflow:hidden;color:#3B4756;font-variant-numeric:tabular-nums}
+.tl .halt{top:0!important;height:66px;background:repeating-linear-gradient(135deg,var(--halt) 0 4px,#FBEDED 4px 8px);color:#B05050;padding:0 3px;border-radius:4px}
+.tl .hours{position:absolute;top:72px;left:0;right:0;height:18px;border-top:1px solid var(--line)}
+.tl .hours span{position:absolute;top:4px;font-size:11px;color:#9AA4B0;transform:translateX(-50%)}
+.tl .tick{position:absolute;top:66px;width:1px;height:6px;background:#B6BFCA;outline:4px solid transparent}
+.tl .tick.key{background:var(--text);height:8px;width:2px}
+.tl .lbl{position:absolute;font-size:11.5px;color:var(--text);white-space:nowrap;transform:translateX(-50%)}
+.tl .now{position:absolute;top:-4px;height:78px;width:2px;background:var(--amber);border-radius:2px}
+.tl .now::before{content:attr(data-t);position:absolute;top:-18px;left:50%;transform:translateX(-50%);
+  font:600 11.5px var(--num);color:var(--amber-ink)}
+
+/* 接下来 */
+h2{font-size:13px;font-weight:600;color:var(--mute);margin-bottom:6px}
+.up{list-style:none;padding:0}
+.up li{display:grid;grid-template-columns:64px 1fr auto;gap:12px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.up li:last-child{border-bottom:0}
+.up .t{font-family:var(--num);font-size:16px;font-weight:600}
+.up .x{color:var(--mute);font-size:12.5px}
+.chip{font-size:12px;color:var(--mute);margin-right:10px}
+.chip.key{color:var(--amber-ink);font-weight:600}
+
+/* 倒计时悬浮条 */
+.bar{position:absolute;left:380px;top:24px;display:flex;align-items:center;gap:10px;height:36px;
+  padding:0 16px 0 10px;background:rgba(255,255,255,.9);border-radius:18px;font-size:13px;cursor:grab;
+  box-shadow:0 1px 2px rgba(20,30,45,.06),0 6px 18px -6px rgba(20,30,45,.18)}
+.bar .ring{width:18px;height:18px}
+.bar .cd{font:600 16px var(--num);font-variant-numeric:tabular-nums}
+.bar .s{color:var(--mute)}
+
+/* 提醒浮窗 */
+.toast{position:absolute;right:22px;bottom:58px;width:320px;background:#fff;border-radius:12px;overflow:hidden;
+  box-shadow:0 1px 2px rgba(20,30,45,.08),0 22px 48px -14px rgba(20,30,45,.35);transform:translateX(380px);
+  transition:transform .35s cubic-bezier(.2,.8,.2,1)}
+.toast.show{transform:none;animation:glow 1.6s ease-out .3s}
+@keyframes glow{0%{box-shadow:0 0 0 0 rgba(240,160,32,.5),0 22px 48px -14px rgba(20,30,45,.35)}
+  100%{box-shadow:0 0 0 14px rgba(240,160,32,0),0 22px 48px -14px rgba(20,30,45,.35)}}
+.toast .key{background:#FFF3DF;color:var(--amber-ink);font-size:12px;font-weight:600;padding:5px 16px}
+.toast .body{padding:14px 16px}
+.toast .row1{display:flex;justify-content:space-between;align-items:baseline}
+.toast .row1 b{font-size:15px;font-weight:600}
+.toast .row1 .num{font-size:26px;font-weight:600}
+.toast .row2{color:var(--mute);font-size:12.5px;margin:2px 0 12px}
+.toast .acts{display:flex;justify-content:flex-end;gap:8px}
+.toast .acts button{border:0;background:var(--soft);border-radius:7px;padding:5px 12px;font-size:12.5px}
+.toast .acts .ok{background:var(--text);color:#fff;font-weight:600}
+.toast .life{height:3px;background:var(--amber);transform-origin:left}
+.toast.show .life{animation:life 8s linear forwards}
+@keyframes life{to{transform:scaleX(0)}}
+
+/* 任务栏 + 托盘 */
+.taskbar{position:absolute;left:0;right:0;bottom:0;height:42px;background:rgba(255,255,255,.75);backdrop-filter:blur(8px);
+  display:flex;align-items:center;justify-content:flex-end;gap:14px;padding:0 16px;font-size:12px;color:var(--mute)}
+.tray{position:relative;display:flex;align-items:center}
+.tray .tip{position:absolute;bottom:34px;right:-8px;white-space:nowrap;background:#fff;color:var(--text);padding:5px 10px;
+  border-radius:6px;box-shadow:0 6px 18px -6px rgba(20,30,45,.25);opacity:0;pointer-events:none;transition:opacity .15s}
+.tray:hover .tip,.tray:focus-within .tip{opacity:1}
+.replay{position:absolute;right:22px;top:24px;background:#fff;border:0;border-radius:8px;padding:7px 14px;font-size:12.5px;
+  box-shadow:0 1px 2px rgba(20,30,45,.08)}
+
+/* 列表页 */
+.ph{color:var(--mute);padding-top:30px}
+.list{list-style:none;padding:0;background:var(--soft);border-radius:10px;padding:0 14px}
+.list li{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.list li:last-child{border-bottom:0}
+.list .bj{font-family:var(--num);color:var(--mute);margin-left:10px;font-size:12.5px}
+.sw{width:34px;height:20px;border-radius:10px;background:#D3D9E1;position:relative;border:0;flex:none}
+.sw::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;
+  box-shadow:0 1px 2px rgba(0,0,0,.2);transition:.15s}
+.sw[aria-checked=true]{background:var(--amber)}.sw[aria-checked=true]::after{left:16px}
+.grp{font-size:12.5px;color:var(--mute);margin:18px 0 6px}
+.grp:first-of-type{margin-top:0}
+</style>
+</head>
+<body>
+<p class="note"><b>TradeClock 界面原型</b>。模拟桌面：中间是设置窗口，顶部是倒计时悬浮条，右下角是提醒浮窗和托盘。时间轴按你电脑的当前时间和真实时区规则实时计算。点“预览提醒”可以重放浮窗。</p>
+<div class="desk" id="desk">
+  <div class="bar" title="可拖动，可设置半透明和鼠标穿透">
+    <svg class="ring" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="none" stroke="#E1E6EC" stroke-width="3"/>
+      <circle id="barRing" cx="10" cy="10" r="8" fill="none" stroke="#18202B" stroke-width="3" stroke-dasharray="50.3" stroke-dashoffset="0" transform="rotate(-90 10 10)"/></svg>
+    <span>NQ 15m</span><span class="cd" id="barCd">--:--</span><span class="s" id="barSess">--</span>
+  </div>
+  <button class="replay" id="replay">预览提醒</button>
+
+  <section class="win" aria-label="TradeClock 设置窗口">
+    <div class="titlebar"><span class="brand">
+      <svg width="16" height="16" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="none" stroke="#F2A93B" stroke-width="2.5"/><path d="M10 5v5l3 2" stroke="#18202B" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+      TradeClock</span><span class="ctl"><span>—</span><span>☐</span><span>✕</span></span></div>
+    <nav id="nav">
+      <button data-p="today" aria-current="true">今日</button>
+      <button data-p="sym">品种</button>
+      <button data-p="per">周期</button>
+      <button data-p="keys">关键时点</button>
+      <button data-p="alert">提醒方式</button>
+      <button data-p="cal">日历</button>
+      <button data-p="gen">常规</button>
+      <span class="foot">日历数据 2026.10<br>今天已更新</span>
+    </nav>
+    <main id="main"></main>
+  </section>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <div class="taskbar">
+    <span>ENG</span>
+    <span class="tray" tabindex="0">
+      <svg width="20" height="20" viewBox="0 0 20 20" aria-label="TradeClock 托盘图标"><circle cx="10" cy="10" r="7" fill="none" stroke="#E1E6EC" stroke-width="3"/>
+        <circle id="trayRing" cx="10" cy="10" r="7" fill="none" stroke="#18202B" stroke-width="3" stroke-dasharray="44" transform="rotate(-90 10 10)"/></svg>
+      <span class="tip" id="trayTip">TradeClock</span>
+    </span>
+    <span class="num" id="clock">--:--</span>
+  </div>
+</div>
+<script>
+// ---------- 时区工具：全部用浏览器内置 IANA 时区，自动处理夏令时 ----------
+const BJ='Asia/Shanghai', CT='America/Chicago', NY='America/New_York', LON='Europe/London',
+      FRA='Europe/Berlin', TYO='Asia/Tokyo', SYD='Australia/Sydney', HK='Asia/Hong_Kong';
+const fmtCache={};
+function parts(ms,tz){
+  const f=fmtCache[tz]||(fmtCache[tz]=new Intl.DateTimeFormat('en-US',{timeZone:tz,hourCycle:'h23',
+    year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',weekday:'short'}));
+  const o={};for(const p of f.formatToParts(ms))o[p.type]=p.value;
+  return {y:+o.year,mo:+o.month,d:+o.day,h:+o.hour,mi:+o.minute,s:+o.second,wd:o.weekday};
+}
+function offset(ms,tz){const p=parts(ms,tz);return Date.UTC(p.y,p.mo-1,p.d,p.h,p.mi,p.s)-Math.floor(ms/1000)*1000;}
+// 某时区本地时间 → UTC 毫秒
+function at(tz,y,mo,d,h,mi){let g=Date.UTC(y,mo-1,d,h,mi);g-=offset(g,tz);g=Date.UTC(y,mo-1,d,h,mi)-offset(g,tz);return g;}
+const pad=n=>String(n).padStart(2,'0');
+const hm=(ms,tz=BJ)=>{const p=parts(ms,tz);return pad(p.h)+':'+pad(p.mi)};
+const isDST=(tz,ms)=>{const y=parts(ms,tz).y;return offset(ms,tz)>Math.min(offset(Date.UTC(y,0,15),tz),offset(Date.UTC(y,6,15),tz));};
+
+// ---------- 数据：时段与关键时点（与 PRD 第 4 节一致） ----------
+const SESS=[
+  {name:'亚盘',tz:TYO,from:[9,0],to:[15,0],cls:'--asia'},
+  {name:'欧盘',tz:LON,from:[8,0],to:[16,30],cls:'--eu'},
+  {name:'美盘',tz:NY,from:[9,30],to:[16,0],cls:'--us'},
+];
+const KEYS=[
+  {g:'周开盘',n:'CME 周开盘',tz:CT,t:[17,0],days:['Sun'],key:1},
+  {g:'亚盘',n:'悉尼开盘',tz:SYD,t:[7,0]},
+  {g:'亚盘',n:'东京开盘',tz:TYO,t:[9,0]},
+  {g:'亚盘',n:'港股开盘',tz:HK,t:[9,30]},
+  {g:'欧盘',n:'法兰克福开盘',tz:FRA,t:[9,0]},
+  {g:'欧盘',n:'伦敦开盘',tz:LON,t:[8,0],key:1},
+  {g:'欧盘',n:'伦敦金上午定价',tz:LON,t:[10,30]},
+  {g:'美盘',n:'美国数据发布',tz:NY,t:[8,30],key:1},
+  {g:'美盘',n:'COMEX 黄金日盘开盘',tz:NY,t:[8,20]},
+  {g:'美盘',n:'美股开盘',tz:NY,t:[9,30],key:1},
+  {g:'美盘',n:'开盘 30 分钟',tz:NY,t:[10,0]},
+  {g:'美盘',n:'伦敦金下午定价',tz:LON,t:[15,0]},
+  {g:'美盘',n:'伦敦收盘',tz:LON,t:[16,0]},
+  {g:'美盘',n:'COMEX 黄金日盘收盘',tz:NY,t:[13,30]},
+  {g:'美盘',n:'美股收盘',tz:NY,t:[16,0],key:1},
+  {g:'休市',n:'CME 每日休市',tz:CT,t:[16,0]},
+];
+const WEEK=['Mon','Tue','Wed','Thu','Fri'];
+// 某关键时点在 [a,b) 区间内的所有实例
+function keyHits(k,a,b){
+  const out=[];
+  for(let dd=-1;dd<=Math.ceil((b-a)/864e5);dd++){
+    const p=parts(a+dd*864e5,k.tz), ms=at(k.tz,p.y,p.mo,p.d,k.t[0],k.t[1]);
+    const wd=parts(ms,k.tz).wd;
+    if(!(k.days||WEEK).includes(wd))continue;
+    if(ms>=a&&ms<b&&!out.includes(ms))out.push(ms);
+  }
+  return out;
+}
+// CME 是否在交易（周日 17:00 CT – 周五 16:00 CT，每日 16–17 休市）
+function cmeOpen(ms){
+  const p=parts(ms,CT),m=p.h*60+p.mi;
+  if(p.wd==='Sat')return false;
+  if(p.wd==='Sun')return m>=1020;
+  if(p.wd==='Fri')return m<960;
+  return m<960||m>=1020;
+}
+function sessionAt(ms){
+  const hit=[];
+  for(const s of SESS){const p=parts(ms,s.tz),m=p.h*60+p.mi;
+    if(WEEK.includes(p.wd)&&m>=s.from[0]*60+s.from[1]&&m<s.to[0]*60+s.to[1])hit.push(s.name);}
+  if(!cmeOpen(ms))return 'CME 休市';
+  return hit.length?hit.join(' / '):'亚盘前';
+}
+// 下一个 15m 收盘（CME 开盘时间内）
+function nextClose(now,per=15){
+  let t=Math.floor(now/(per*6e4))*per*6e4+per*6e4;
+  for(let i=0;i<2000&&!cmeOpen(t-1);i++)t+=per*6e4;
+  return t;
+}
+// ---------- 今日页 ----------
+const $=id=>document.getElementById(id);
+const main=$('main');
+function dayStart(now){const p=parts(now,BJ);return at(BJ,p.y,p.mo,p.d,0,0);}
+function dstText(now){
+  const l=isDST(LON,now),n=isDST(NY,now);
+  if(l===n)return l?'美欧均为夏令时':'美欧均为冬令时';
+  return (l?'欧洲夏令时':'欧洲已切冬令时')+'，'+(n?'美国仍为夏令时':'美国冬令时')+'（不同步周）';
+}
+function upcoming(now,n=6){
+  const ev=[];let t=nextClose(now);
+  for(let i=0;ev.length<40&&i<200;i++){const tags=['15m'];if(t%36e5===0)tags.unshift('1h');ev.push({t,tags,keys:[]});t=nextClose(t);}
+  for(const k of KEYS)for(const ms of keyHits(k,now,now+2*864e5)){
+    const e=ev.find(e=>e.t===ms);if(e)e.keys.push(k.n);else ev.push({t:ms,tags:[],keys:[k.n]});}
+  return ev.filter(e=>e.t>now).sort((a,b)=>a.t-b.t).slice(0,n);
+}
+function renderToday(){
+  const now=Date.now(),a=dayStart(now),b=a+864e5,pct=ms=>((ms-a)/864e5*100);
+  const p=parts(now,BJ),wd='日一二三四五六'[new Date(now+offset(now,BJ)).getUTCDay()];
+  let bands='';
+  for(const s of SESS)for(let dd=-1;dd<=1;dd++){
+    const q=parts(a+dd*864e5+12*36e5,s.tz);
+    const f=at(s.tz,q.y,q.mo,q.d,...s.from),t=at(s.tz,q.y,q.mo,q.d,...s.to);
+    if(!WEEK.includes(parts(f,s.tz).wd))continue;
+    const L=Math.max(f,a),R=Math.min(t,b);if(R<=L)continue;
+    const row=SESS.indexOf(s);
+    bands+=`<div class="band" style="top:${row*23}px;left:${pct(L)}%;width:${pct(R)-pct(L)}%;background:var(${s.cls})">${s.name} ${hm(f)}–${hm(t)}</div>`;
+  }
+  // CME 休市段
+  for(let dd=-1;dd<=1;dd++){const q=parts(a+dd*864e5+12*36e5,CT);
+    const f=at(CT,q.y,q.mo,q.d,16,0),t=at(CT,q.y,q.mo,q.d,17,0);const L=Math.max(f,a),R=Math.min(t,b);
+    if(R>L)bands+=`<div class="band halt" style="left:${pct(L)}%;width:${pct(R)-pct(L)}%" title="CME 每日休市">休</div>`;}
+  let hrs='';for(let h=0;h<=24;h+=3)hrs+=`<span style="left:${h/24*100}%">${pad(h)}</span>`;
+  // 关键时点刻度，标签上下错开避免重叠
+  const hits=[];for(const k of KEYS)for(const ms of keyHits(k,a,b))hits.push({ms,k});
+  hits.sort((x,y)=>x.ms-y.ms);
+  // 次要时点只画刻度（悬停看名称），重要时点才写标签，标签分三行错开
+  let ticks='',lastX=[-99,-99,-99];
+  hits.forEach(({ms,k})=>{const x=pct(ms);
+    if(!k.key){ticks+=`<i class="tick" style="left:${x}%" title="${k.n} ${hm(ms)}"></i>`;return;}
+    let ln=lastX.findIndex(v=>x-v>8);if(ln<0)ln=0;lastX[ln]=x;
+    ticks+=`<i class="tick ${k.key?'key':''}" style="left:${x}%"></i><span class="lbl ${k.key?'key':''}" style="left:${x}%;top:${92+ln*15}px" title="${k.n} ${hm(ms)}">${k.n}</span>`;});
+  const nc=nextClose(now),left=nc-now,hot=left<60e3;
+  main.innerHTML=`
+  <div class="head"><h1>今日 ${p.mo}/${p.d} 周${wd}</h1><span class="dst">${dstText(now)}</span></div>
+  <div class="next">
+    <div class="cd num ${hot?'hot':''}" id="bigCd">${mmss(left)}</div>
+    <div class="meta">距离下次提醒<strong>${hm(nc)} 15m 收盘</strong>${sessionAt(now)} · 芝加哥 ${hm(now,CT)}</div>
+    <button class="pause">暂停 15 分钟</button>
+  </div>
+  <div class="tl">${bands}<div class="hours">${hrs}</div>${ticks}<div class="now" style="left:${pct(now)}%" data-t="${hm(now)}"></div></div>
+  <h2>接下来</h2>
+  <ul class="up">${upcoming(now,5).map(e=>`<li><span class="t">${hm(e.t)}</span><span>${e.tags.map(t=>`<span class="chip">${t} 收盘</span>`).join('')}${e.keys.map(k=>`<span class="chip key">${k}</span>`).join('')}</span><span class="x">${sessionAt(e.t-1)}</span></li>`).join('')}</ul>`;
+}
+const mmss=ms=>{const s=Math.max(0,Math.ceil(ms/1000));return s>=3600?`${Math.floor(s/3600)}:${pad(Math.floor(s/60)%60)}:${pad(s%60)}`:`${pad(Math.floor(s/60))}:${pad(s%60)}`};
+// ---------- 其他页（原型只做关键时点和品种，其余占位） ----------
+function renderKeys(){
+  const now=Date.now();let html='<div class="head"><h1>关键时点</h1><span class="dst">'+dstText(now)+'</span></div>';
+  let g='';
+  for(const k of KEYS){
+    if(k.g!==g){if(g)html+='</ul>';g=k.g;html+=`<p class="grp">${g}</p><ul class="list">`;}
+    const ms=keyHits(k,now,now+8*864e5)[0];
+    const local=pad(k.t[0])+':'+pad(k.t[1]);
+    html+=`<li><span>${k.n}<span class="bj">${local} ${tzName(k.tz)} → 北京 ${ms?hm(ms):'--'}</span></span><button class="sw" role="switch" aria-checked="${k.key?'true':'false'}" aria-label="${k.n}"></button></li>`;
+  }
+  main.innerHTML=html+'</ul>';
+}
+const tzName=tz=>({[CT]:'芝加哥',[NY]:'纽约',[LON]:'伦敦',[FRA]:'法兰克福',[TYO]:'东京',[SYD]:'悉尼',[HK]:'香港'}[tz]);
+function renderSym(){
+  const rows=[['期货','ES 标普 500','CME 股指',1],['期货','NQ 纳斯达克 100','CME 股指',1],['期货','GC 黄金','COMEX',1],['期货','BTC 比特币','CME 加密 · 周末提醒关闭',0]];
+  let g='',html='<div class="head"><h1>品种</h1></div>';
+  for(const [grp,n,d,on] of rows){if(grp!==g){if(g)html+='</ul>';g=grp;html+=`<p class="grp">${grp}</p><ul class="list">`;}
+    html+=`<li><span>${n}<span class="bj">${d}</span></span><button class="sw" role="switch" aria-checked="${on?'true':'false'}" aria-label="${n}"></button></li>`;}
+  main.innerHTML=html+'</ul>';
+}
+const PAGES={today:renderToday,keys:renderKeys,sym:renderSym};
+let page='today';
+$('nav').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  page=b.dataset.p;document.querySelectorAll('nav button').forEach(x=>x.setAttribute('aria-current',x===b));
+  (PAGES[page]||(()=>{main.innerHTML=`<div class="head"><h1>${b.textContent}</h1></div><p class="ph">这一页在原型里先不做，正式版按 PRD 第 7 节实现。</p>`}))();});
+main.addEventListener('click',e=>{const s=e.target.closest('.sw');if(s)s.setAttribute('aria-checked',s.getAttribute('aria-checked')!=='true');});
+
+// ---------- 浮窗、悬浮条、托盘 ----------
+function showToast(){
+  const now=Date.now(),e=upcoming(now-1,1)[0]||{t:nextClose(now),tags:['15m'],keys:[]};
+  const el=$('toast');el.classList.remove('show');void el.offsetWidth;
+  el.innerHTML=`${e.keys.length?`<div class="key">${e.keys.join(' + ')}</div>`:''}
+   <div class="body"><div class="row1"><b>${(e.tags.length?e.tags:['15m']).join(' + ')} 收盘</b><span class="num">${hm(e.t)}</span></div>
+   <div class="row2">芝加哥 ${hm(e.t,CT)} · ${sessionAt(e.t-1)} · 下次 ${hm(nextClose(e.t))}</div>
+   <div class="acts"><button id="tPause">暂停 15 分钟</button><button class="ok" id="tOk">已看</button></div></div><div class="life"></div>`;
+  el.classList.add('show');
+  clearTimeout(showToast.h);showToast.h=setTimeout(()=>el.classList.remove('show'),8000);
+  $('tOk').onclick=$('tPause').onclick=()=>el.classList.remove('show');
+}
+$('replay').onclick=showToast;
+$('toast').addEventListener('mouseenter',()=>clearTimeout(showToast.h));
+$('toast').addEventListener('mouseleave',()=>{showToast.h=setTimeout(()=>$('toast').classList.remove('show'),3000)});
+let lastNext=nextClose(Date.now());
+function tick(){
+  const now=Date.now(),nc=nextClose(now),left=nc-now,frac=1-left/(15*6e4),hot=left<60e3;
+  if(nc!==lastNext){lastNext=nc;showToast();if(page==='today')renderToday();}
+  $('barCd').textContent=mmss(left);$('barCd').style.color=hot?'var(--amber-ink)':'';
+  $('barSess').textContent=sessionAt(now);
+  const open=cmeOpen(now),col=!open?'#B6BFCA':hot?'#F0A020':'#18202B';
+  $('barRing').style.strokeDashoffset=50.3*(1-frac);$('barRing').style.stroke=col;
+  $('trayRing').style.strokeDashoffset=44*(1-frac);$('trayRing').style.stroke=col;
+  $('trayTip').textContent=open?`TradeClock · 下次 ${hm(nc)}（剩余 ${mmss(left)}）`:'TradeClock · CME 休市';
+  $('clock').textContent=hm(now);
+  if(page==='today'){const b=$('bigCd');if(b){b.textContent=mmss(left);b.classList.toggle('hot',hot);}
+    const n=document.querySelector('.tl .now');if(n&&now%6e4<1000)renderToday();}
+}
+renderToday();tick();setInterval(tick,1000);setTimeout(showToast,300);
+</script>
+</body>
+</html>

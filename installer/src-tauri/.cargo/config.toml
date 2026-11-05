@@ -1,0 +1,14 @@
+# 只对本项目生效：Rust 依赖从国内镜像下载，不需要代理
+[source.crates-io]
+replace-with = "rsproxy-sparse"
+
+[source.rsproxy-sparse]
+registry = "sparse+https://rsproxy.cn/index/"
+
+[net]
+retry = 5
+
+# 显式不用代理。空字符串会覆盖全局 cargo 配置和 git 的 http.proxy，
+# 否则 cargo 会继续走 127.0.0.1 上已经关闭的代理。
+[http]
+proxy = ""

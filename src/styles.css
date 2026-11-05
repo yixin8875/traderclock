@@ -1,0 +1,171 @@
+@import "tailwindcss";
+
+/* 设计令牌：浅色为默认，[data-theme="dark"] 覆盖为深色。
+   颜色用语义名，页面里不再散落 #hex，切主题时只换这一层。 */
+@theme {
+  --color-ink: #18202b;
+  --color-mute: #6b7684;
+  --color-line: #e4e8ee;
+  --color-soft: #f5f7fa;
+  --color-surface: #ffffff;
+  --color-surface-alt: #fbfcfd;
+  --color-hover: #edf0f4;
+  --color-selected: #fffaf2;
+  --color-amber: #f0a020;
+  --color-amber-ink: #a86400;
+  --color-amber-soft: #fff3df;
+  --color-amber-hover: #ffe9c7;
+  --color-asia: #d9ecf5;
+  --color-eu: #e1e4fa;
+  --color-us: #efe1f4;
+  --color-halt: #f7dcdc;
+  --color-halt-2: #fbeded;
+  --color-halt-ink: #d98b8b;
+  --color-success: #6aa784;
+  --color-success-soft: #e8f3ec;
+  --color-success-hover: #dcefe2;
+  --color-success-ink: #2f7a4d;
+  --color-danger-soft: #fdecec;
+  --color-danger-hover: #fbdcdc;
+  --color-danger-ink: #a33f3f;
+  --color-roll: #7b6bb5;
+  --color-roll-soft: #eef1fb;
+  --color-roll-ink: #4c5a9a;
+  --color-news: #e05757;
+  --color-news-soft: #fdecec;
+  --color-news-ink: #a33f3f;
+  --color-weekend: #b05050;
+  --color-axis: #cfd6df;
+  --color-mark-muted: #b6bfca;
+  --color-label: #9aa4b0;
+  --color-label-strong: #3b4756;
+  --color-switch-off: #d3d9e1;
+  --font-ui: "Segoe UI Variable Text", "Segoe UI", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
+  --font-num: "Bahnschrift", "DIN Alternate", "Segoe UI Variable Display", sans-serif;
+}
+
+[data-theme="dark"] {
+  --color-ink: #e6edf3;
+  --color-mute: #8f9eae;
+  --color-line: #2b3541;
+  --color-soft: #171e26;
+  --color-surface: #1b232c;
+  --color-surface-alt: #151b22;
+  --color-hover: #232d38;
+  --color-selected: #2a2418;
+  --color-amber-ink: #ffc46b;
+  --color-amber-soft: #3a2b12;
+  --color-amber-hover: #4a3618;
+  --color-asia: #1e3442;
+  --color-eu: #262a4a;
+  --color-us: #372842;
+  --color-halt: #3b2328;
+  --color-halt-2: #4a2b31;
+  --color-halt-ink: #b96565;
+  --color-success: #5f9f7c;
+  --color-success-soft: #1e3328;
+  --color-success-hover: #274633;
+  --color-success-ink: #8bd6a8;
+  --color-danger-soft: #3a2226;
+  --color-danger-hover: #4a2b31;
+  --color-danger-ink: #ff9b9b;
+  --color-roll: #9b8bdb;
+  --color-roll-soft: #252b4a;
+  --color-roll-ink: #b4bdff;
+  --color-news: #ff7b7b;
+  --color-news-soft: #3a2226;
+  --color-news-ink: #ff9b9b;
+  --color-weekend: #e88b8b;
+  --color-axis: #3a4653;
+  --color-mark-muted: #5c6876;
+  --color-label: #7f8b99;
+  --color-label-strong: #c2ccd8;
+  --color-switch-off: #39434f;
+}
+
+:root {
+  color-scheme: light;
+}
+[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+body {
+  margin: 0;
+  font-family: var(--font-ui);
+  color: var(--color-ink);
+  background: var(--color-surface);
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+}
+.num {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+}
+:focus-visible {
+  outline: 2px solid var(--color-amber);
+  outline-offset: 2px;
+}
+.halt-stripes {
+  background: repeating-linear-gradient(135deg, var(--color-halt) 0 4px, var(--color-halt-2) 4px 8px);
+}
+
+/* 深色下原生控件跟随主题 */
+[data-theme="dark"] input,
+[data-theme="dark"] select,
+[data-theme="dark"] textarea {
+  color: var(--color-ink);
+}
+[data-theme="dark"] input[type="date"],
+[data-theme="dark"] input[type="time"] {
+  color-scheme: dark;
+}
+[data-theme="dark"] input[type="range"] {
+  accent-color: var(--color-amber);
+}
+
+/* 紧凑密度只缩间距，不动字号，避免信息变得难读 */
+[data-density="compact"] main {
+  padding: 14px 22px;
+}
+[data-density="compact"] .page-head {
+  margin-bottom: 10px;
+}
+[data-density="compact"] .group {
+  margin-bottom: 12px;
+}
+[data-density="compact"] .row {
+  padding-top: 7px;
+  padding-bottom: 7px;
+}
+[data-density="compact"] .nav-item {
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+[data-density="compact"] .settings-tab {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+/* 悬浮条窗口本身透明，透明度由内容层的 opacity 控制 */
+html.bar-window,
+html.bar-window body,
+html.bar-window #root {
+  background: transparent;
+}
+
+@keyframes toast-in {
+  from { transform: translateX(24px); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+@keyframes life {
+  to { transform: scaleX(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}

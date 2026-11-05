@@ -1,0 +1,16 @@
+node_modules/
+dist/
+src-tauri/target/
+src-tauri/gen/
+*.log
+
+cargo-test.log
+tauri-dev.log
+release/
+build.log
+
+# 动画安装器的构建产物（源码保留）
+installer/src-tauri/target/
+installer/src-tauri/gen/
+installer/assets/core-setup.exe
+installer/preview-*.png
