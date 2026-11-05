@@ -39,16 +39,25 @@ jobs:
         shell: bash
         env:
           INPUT_VERSION: ${{ inputs.version }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -e
           CURRENT=$(node -p "require('./package.json').version")
+          # 只有该版本真的发布过才递增；构建失败后重跑会沿用同一版本
+          published() {
+            local code
+            code=$(curl -s -o /dev/null -w "%{http_code}" \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/releases/tags/v$1")
+            [ "$code" = "200" ]
+          }
           if [ "${{ github.event_name }}" = "push" ] && [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
             VERSION="${GITHUB_REF#refs/tags/v}"
             node scripts/release-version.mjs --set "$VERSION" > /dev/null
           elif [ -n "${INPUT_VERSION}" ]; then
             VERSION="${INPUT_VERSION}"
             node scripts/release-version.mjs --set "$VERSION" > /dev/null
-          elif git tag --list "v${CURRENT}" | grep -q .; then
+          elif published "$CURRENT"; then
             VERSION=$(node scripts/release-version.mjs --bump patch)
           else
             VERSION="${CURRENT}"
