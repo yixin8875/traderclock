@@ -1,6 +1,6 @@
 [package]
 name = "tradeclock"
-version = "0.1.1"
+version = "0.1.2"
 description = "固定周期看盘提醒"
 edition = "2021"
 
