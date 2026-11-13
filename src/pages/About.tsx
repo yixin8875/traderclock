@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { Update } from "@tauri-apps/plugin-updater";
-import { Group, PageHead, Row, Switch } from "../components/ui";
+import { Group, Row, Switch } from "../components/ui";
 import {
   appVersion,
   autoCheckEnabled,
@@ -14,9 +14,9 @@ import {
 } from "../lib/updater";
 
 const BTN =
-  "rounded-md border border-line bg-surface px-2.5 py-1 text-[12px] text-ink hover:bg-soft disabled:opacity-50";
+  "rounded-lg border border-line bg-surface px-2.5 py-1 text-[12px] text-ink hover:bg-soft disabled:opacity-50";
 const PRIMARY =
-  "rounded-md bg-ink px-2.5 py-1 text-[12px] font-medium text-white hover:opacity-90 disabled:opacity-50";
+  "rounded-lg bg-amber px-2.5 py-1 text-[12px] font-medium text-on-amber hover:opacity-90 disabled:opacity-50";
 
 type Phase = "idle" | "checking" | "latest" | "available" | "downloading" | "installing" | "error";
 
@@ -78,8 +78,6 @@ export default function AboutPage() {
 
   return (
     <>
-      <PageHead title="关于与更新" />
-
       <Group title="版本">
         <Row label="当前版本" hint={version || "--"}>
           <span />
@@ -95,7 +93,7 @@ export default function AboutPage() {
       </Group>
 
       {phase === "available" && update && (
-        <section className="mb-5 rounded-xl bg-amber-soft px-3.5 py-3">
+        <section className="mb-5 rounded-xl bg-amber-soft px-4 py-3">
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="text-sm font-semibold text-amber-ink">发现新版本 v{update.version}</p>
@@ -129,8 +127,8 @@ export default function AboutPage() {
             aria-valuenow={progress.percent ?? 0}
           >
             <div
-              className="h-full rounded-full bg-amber transition-[width] duration-200"
-              style={{ width: `${progress.percent ?? 8}%` }}
+              className="h-full w-full origin-left rounded-full bg-amber transition-transform duration-200"
+              style={{ transform: `scaleX(${(progress.percent ?? 8) / 100})` }}
             />
           </div>
           <p className="mt-1.5 text-[12px] text-mute">
@@ -146,13 +144,13 @@ export default function AboutPage() {
             phase === "error" ? "bg-danger-soft text-danger-ink" : "bg-soft text-mute"
           }`}
         >
-          {phase === "latest" && "已是最新版本。"}
+          {phase === "latest" && "已是最新版本"}
           {phase === "installing" && message}
           {phase === "error" && message}
         </p>
       )}
 
-      <p className="text-[13px] leading-6 text-mute">
+      <p className="text-[12.5px] leading-5 text-mute">
         更新包来自 GitHub Releases（yixin8875/traderclock），下载后会用内置公钥校验签名，校验不通过不会安装。
         <br />
         首次使用建议保留自动检查更新；手动安装的版本也能收到后续更新。

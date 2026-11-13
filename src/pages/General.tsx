@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { emit } from "@tauri-apps/api/event";
 import { disable, enable, isEnabled } from "@tauri-apps/plugin-autostart";
 import { api } from "../lib/api";
-import { Group, PageHead, Row, Switch } from "../components/ui";
+import { Group, Row, Switch } from "../components/ui";
 import {
   loadUiPrefs,
   saveUiPrefs,
@@ -83,8 +83,6 @@ export default function GeneralPage({ cfg, save }: PageProps) {
 
   return (
     <>
-      <PageHead title="常规与外观" />
-
       <Group title="外观">
         <Row label="主题" hint="主窗口、浮窗和倒计时条一起切换">
           <div className="flex rounded-lg border border-line bg-surface p-0.5" role="group" aria-label="主题">
@@ -95,7 +93,7 @@ export default function GeneralPage({ cfg, save }: PageProps) {
                 aria-pressed={prefs.theme === t.id}
                 onClick={() => updatePrefs({ theme: t.id })}
                 className={`rounded-md px-2.5 py-1 text-[12px] ${
-                  prefs.theme === t.id ? "bg-soft font-semibold text-ink shadow-sm" : "text-mute hover:text-ink"
+                  prefs.theme === t.id ? "bg-soft font-medium text-ink" : "text-mute hover:text-ink"
                 }`}
               >
                 {t.label}
@@ -112,7 +110,7 @@ export default function GeneralPage({ cfg, save }: PageProps) {
                 aria-pressed={prefs.density === d.id}
                 onClick={() => updatePrefs({ density: d.id })}
                 className={`rounded-md px-2.5 py-1 text-[12px] ${
-                  prefs.density === d.id ? "bg-soft font-semibold text-ink shadow-sm" : "text-mute hover:text-ink"
+                  prefs.density === d.id ? "bg-soft font-medium text-ink" : "text-mute hover:text-ink"
                 }`}
               >
                 {d.label}
@@ -124,7 +122,7 @@ export default function GeneralPage({ cfg, save }: PageProps) {
           <select
             value={prefs.startPage}
             onChange={(e) => updatePrefs({ startPage: e.target.value as StartPage })}
-            className="rounded-md border border-line bg-surface px-2 py-1 text-sm"
+            className="rounded-lg border border-line bg-surface px-2 py-1 text-sm"
           >
             {START_PAGES.map((p) => (
               <option key={p.id} value={p.id}>
@@ -146,7 +144,7 @@ export default function GeneralPage({ cfg, save }: PageProps) {
           <select
             value={cfg.hotkey ?? "off"}
             onChange={(e) => changeHotkey(e.target.value)}
-            className="rounded-md border border-line bg-surface px-2 py-1 text-sm"
+            className="rounded-lg border border-line bg-surface px-2 py-1 text-sm"
           >
             {HOTKEYS.map((h) => (
               <option key={h.value} value={h.value}>
@@ -162,7 +160,7 @@ export default function GeneralPage({ cfg, save }: PageProps) {
           <select
             value={prefs.barStyle}
             onChange={(e) => updatePrefs({ barStyle: e.target.value as BarStyle })}
-            className="rounded-md border border-line bg-surface px-2 py-1 text-sm"
+            className="rounded-lg border border-line bg-surface px-2 py-1 text-sm"
           >
             {BAR_STYLES.map((s) => (
               <option key={s.id} value={s.id}>
@@ -200,7 +198,7 @@ export default function GeneralPage({ cfg, save }: PageProps) {
           {hotkeyError}
         </p>
       )}
-      <p className="text-[13px] leading-6 text-mute">
+      <p className="text-[12.5px] leading-5 text-mute">
         关闭这个窗口后 TradeClock 会继续在托盘运行。要完全退出，请右键托盘图标选择“退出”。
         <br />
         托盘图标会随状态变色：琥珀色为交易中，灰色为已暂停，蓝灰色为休市。

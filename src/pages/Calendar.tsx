@@ -28,13 +28,20 @@ const KIND_LABEL: Record<CalKind, string> = {
   normal: "照常交易",
 };
 
+// 覆盖操作默认是中性按钮，只有当天已应用的那一档才着色
 const ACTION_STYLE = {
   closed:
-    "rounded-md bg-danger-soft px-2.5 py-1 text-[11.5px] font-medium text-danger-ink hover:bg-danger-hover disabled:opacity-50",
+    "rounded-lg border border-line bg-surface px-2.5 py-1 text-[12px] text-mute hover:bg-soft hover:text-ink disabled:opacity-50",
   early:
-    "rounded-md bg-amber-soft px-2.5 py-1 text-[11.5px] font-medium text-amber-ink hover:bg-amber-hover disabled:opacity-50",
+    "rounded-lg border border-line bg-surface px-2.5 py-1 text-[12px] text-mute hover:bg-soft hover:text-ink disabled:opacity-50",
   normal:
-    "rounded-md bg-success-soft px-2.5 py-1 text-[11.5px] font-medium text-success-ink hover:bg-success-hover disabled:opacity-50",
+    "rounded-lg border border-line bg-surface px-2.5 py-1 text-[12px] text-mute hover:bg-soft hover:text-ink disabled:opacity-50",
+} as const;
+
+const ACTION_ON = {
+  closed: "border-transparent bg-danger-soft text-danger-ink",
+  early: "border-transparent bg-amber-soft text-amber-ink",
+  normal: "border-transparent bg-success-soft text-success-ink",
 } as const;
 
 type Filters = {
@@ -237,6 +244,24 @@ function FilterChip(props: {
       {props.children}
       {props.label}
     </button>
+  );
+}
+
+function Chevron({ dir }: { dir: "left" | "right" }) {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d={dir === "left" ? "M15 6l-6 6 6 6" : "M9 6l6 6-6 6"} />
+    </svg>
   );
 }
 
@@ -600,14 +625,11 @@ export default function CalendarPage() {
     <div className="flex h-full min-h-0 flex-col">
       <header className="mb-2 flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <div className="flex flex-wrap items-baseline gap-x-2">
-            <h1 className="text-[22px] font-semibold leading-8 tracking-tight">
-              <span className="num">{view.year}</span> 年 <span className="num">{view.month}</span> 月
-            </h1>
-            <span className="text-[11px] text-mute">CME · 交易日按芝加哥</span>
-          </div>
-          <p className="text-[12px] text-mute">
-            {summary} · 数据 {data?.version || "规则"} · 时间按{tzLabel}
+          <h1 className="text-[22px] font-semibold leading-8 tracking-tight">
+            <span className="num">{view.year}</span> 年 <span className="num">{view.month}</span> 月
+          </h1>
+          <p className="mt-0.5 text-[12px] text-mute">
+            CME · {summary} · 数据 {data?.version || "规则"} · 时间按{tzLabel}
           </p>
         </div>
         <div className="flex flex-none flex-wrap items-center justify-end gap-1.5">
@@ -644,9 +666,9 @@ export default function CalendarPage() {
           <button
             onClick={() => goMonth(-1)}
             aria-label="上个月"
-            className="h-8 w-8 rounded-lg border border-line bg-surface text-lg leading-none text-mute hover:bg-soft hover:text-ink"
+            className="flex h-8 w-8 items-center justify-center rounded-lg border border-line bg-surface text-mute hover:bg-soft hover:text-ink"
           >
-            ‹
+            <Chevron dir="left" />
           </button>
           <button
             onClick={goToday}
@@ -657,9 +679,9 @@ export default function CalendarPage() {
           <button
             onClick={() => goMonth(1)}
             aria-label="下个月"
-            className="h-8 w-8 rounded-lg border border-line bg-surface text-lg leading-none text-mute hover:bg-soft hover:text-ink"
+            className="flex h-8 w-8 items-center justify-center rounded-lg border border-line bg-surface text-mute hover:bg-soft hover:text-ink"
           >
-            ›
+            <Chevron dir="right" />
           </button>
         </div>
       </header>
@@ -748,7 +770,7 @@ export default function CalendarPage() {
                 <span className="flex items-center justify-between">
                   <span
                     className={`num flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[11.5px] ${
-                      isToday ? "bg-amber font-semibold text-white" : cell.inMonth ? "font-medium" : ""
+                      isToday ? "bg-amber font-medium text-on-amber" : cell.inMonth ? "font-medium" : ""
                     }`}
                   >
                     {cell.day}
@@ -771,7 +793,7 @@ export default function CalendarPage() {
                     {dayRolls.length > 0 && (
                       <span className="flex items-center gap-0.5 text-roll-ink" title={dayRolls.map((e) => `${e.label} ${e.code}`).join("\n")}>
                         <i className="h-1.5 w-1.5 flex-none rotate-45 rounded-[1px] bg-roll" />
-                        {dayRolls.length > 1 && <span className="num text-[9px] leading-none">{dayRolls.length}</span>}
+                        {dayRolls.length > 1 && <span className="num text-[10px] leading-none">{dayRolls.length}</span>}
                       </span>
                     )}
                     {dayNews.length > 0 && (
@@ -780,7 +802,7 @@ export default function CalendarPage() {
                         title={dayNews.map((e) => `${clockInZone(e.at, tz, cell.key)} ${e.country} ${e.title}`).join("\n")}
                       >
                         <i className={`h-1.5 w-1.5 flex-none rounded-full ${highNews ? "bg-news" : "bg-mute/60"}`} />
-                        <span className="num text-[9px] leading-none">{dayNews.length}</span>
+                        <span className="num text-[10px] leading-none">{dayNews.length}</span>
                       </span>
                     )}
                   </span>
@@ -797,7 +819,7 @@ export default function CalendarPage() {
             const end = parseKey(week.end);
             return (
               <div key={week.start}>
-                <div className="sticky top-0 z-10 flex items-center justify-between border-b border-line bg-soft/95 px-3 py-1.5 text-[10.5px] font-medium text-mute backdrop-blur">
+                <div className="sticky top-0 z-10 flex items-center justify-between border-b border-line bg-soft/95 px-3 py-1.5 text-[11px] font-medium text-mute backdrop-blur">
                   <span className="num">
                     {start.month}/{start.day} – {end.month}/{end.day}
                   </span>
@@ -828,12 +850,12 @@ export default function CalendarPage() {
                     >
                       <span
                         className={`num flex h-6 w-8 shrink-0 items-center justify-center rounded-full text-[12.5px] ${
-                          isToday ? "bg-amber font-semibold text-white" : "font-medium"
+                          isToday ? "bg-amber font-medium text-on-amber" : "font-medium"
                         }`}
                       >
                         {day.day}
                       </span>
-                      <span className="w-7 shrink-0 pt-1 text-[10.5px] text-mute">{weekdayLabel(day.key)}</span>
+                      <span className="w-7 shrink-0 pt-1 text-[11px] text-mute">{weekdayLabel(day.key)}</span>
                       <span className="min-w-0 flex-1 pt-0.5">
                         <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
                           {filters.holidays && state.kind && (
@@ -890,7 +912,7 @@ export default function CalendarPage() {
         </div>
       )}
 
-      <section className="mt-2.5 rounded-xl border border-line bg-soft/70 px-3.5 py-2.5">
+      <section className="mt-3 rounded-xl border border-line bg-soft px-4 py-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="min-w-0">
             <div className="flex flex-wrap items-baseline gap-2">
@@ -899,15 +921,15 @@ export default function CalendarPage() {
               </span>
               <span className="text-[12px] text-mute">{weekdayLabel(selected)}</span>
               {selected === today.key && (
-                <span className="rounded bg-amber-soft px-1.5 py-px text-[10px] font-medium text-amber-ink">今天</span>
+                <span className="rounded bg-amber-soft px-1.5 text-[11px] leading-4 text-amber-ink">今天</span>
               )}
               {selectedRolls.length > 0 && (
-                <span className="rounded bg-roll-soft px-1.5 py-px text-[10px] font-medium text-roll-ink">
+                <span className="rounded bg-roll-soft px-1.5 text-[11px] leading-4 text-roll-ink">
                   换月 {selectedRolls.length}
                 </span>
               )}
               {selectedNews.length > 0 && (
-                <span className="rounded bg-danger-soft px-1.5 py-px text-[10px] font-medium text-danger-ink">
+                <span className="rounded bg-danger-soft px-1.5 text-[11px] leading-4 text-danger-ink">
                   财经 {selectedNews.length}
                 </span>
               )}
@@ -917,13 +939,25 @@ export default function CalendarPage() {
             </p>
           </div>
           <div className="flex flex-wrap items-center justify-end gap-1.5">
-            <button onClick={() => apply("closed")} disabled={saving} className={ACTION_STYLE.closed}>
+            <button
+              onClick={() => apply("closed")}
+              disabled={saving}
+              className={`${ACTION_STYLE.closed} ${selectedOverride?.kind === "closed" ? ACTION_ON.closed : ""}`}
+            >
               全天休市
             </button>
-            <button onClick={openEarly} disabled={saving} className={ACTION_STYLE.early}>
+            <button
+              onClick={openEarly}
+              disabled={saving}
+              className={`${ACTION_STYLE.early} ${selectedOverride?.kind === "early_close" ? ACTION_ON.early : ""}`}
+            >
               提前收盘
             </button>
-            <button onClick={() => apply("normal")} disabled={saving} className={ACTION_STYLE.normal}>
+            <button
+              onClick={() => apply("normal")}
+              disabled={saving}
+              className={`${ACTION_STYLE.normal} ${selectedOverride?.kind === "normal" ? ACTION_ON.normal : ""}`}
+            >
               照常交易
             </button>
             {selectedOverride && (
@@ -939,10 +973,10 @@ export default function CalendarPage() {
         </div>
 
         {(selectedRolls.length > 0 || selectedNews.length > 0) && (
-          <ul className="mt-1.5 max-h-[78px] space-y-0.5 overflow-auto border-t border-line pt-1.5 text-[11.5px]">
+          <ul className="mt-2 max-h-[84px] space-y-1 overflow-auto border-t border-line pt-2 text-[12px]">
             {selectedRolls.map((e) => (
               <li key={`${e.kind}-${e.code}-${e.date}`} className="flex items-center gap-2">
-                <span className="w-9 shrink-0 text-[10px] text-mute">{e.kind === "roll" ? "换月" : "到期"}</span>
+                <span className="w-9 shrink-0 text-[11px] text-mute">{e.kind === "roll" ? "换月" : "到期"}</span>
                 <span className="rounded bg-roll-soft px-1.5 py-px text-roll-ink" title={`${e.label} ${e.code}`}>
                   {e.label} · {e.code}
                 </span>
@@ -950,14 +984,14 @@ export default function CalendarPage() {
             ))}
             {selectedNews.map((e, i) => (
               <li key={`${e.at}-${i}`} className="flex items-start gap-2">
-                <span className="num w-9 shrink-0 pt-px text-[10px] text-mute">
+                <span className="num w-9 shrink-0 pt-px text-[11px] text-mute">
                   {clockInZone(e.at, tz, selected)}
                 </span>
                 <span className={e.impact === "high" ? "font-medium text-danger-ink" : "text-mute"}>
                   {e.country} {e.title}
                 </span>
                 {e.impact === "high" && (
-                  <span className="rounded bg-danger-soft px-1 text-[9px] leading-4 text-danger-ink">高</span>
+                  <span className="rounded bg-danger-soft px-1 text-[11px] leading-4 text-danger-ink">高</span>
                 )}
               </li>
             ))}
@@ -977,7 +1011,7 @@ export default function CalendarPage() {
             <button
               onClick={() => apply("early_close")}
               disabled={saving}
-              className="rounded-md bg-ink px-2.5 py-1 text-[11.5px] font-medium text-white disabled:opacity-50"
+              className="rounded-lg bg-amber px-2.5 py-1 text-[12px] font-medium text-on-amber disabled:opacity-50"
             >
               保存
             </button>
@@ -1010,7 +1044,7 @@ export default function CalendarPage() {
               <b className="num text-[12.5px]">
                 {p.month} 月 {p.day} 日
               </b>
-              <span className="text-[10.5px] text-mute">{weekdayLabel(hover.key)}</span>
+              <span className="text-[11px] text-mute">{weekdayLabel(hover.key)}</span>
             </div>
             <p
               className={`text-[11px] ${
@@ -1034,7 +1068,7 @@ export default function CalendarPage() {
                 {e.country} {e.title}
               </p>
             ))}
-            {items.length > 4 && <p className="mt-0.5 text-[10.5px] text-mute">还有 {items.length - 4} 条…</p>}
+            {items.length > 4 && <p className="mt-0.5 text-[11px] text-mute">还有 {items.length - 4} 条…</p>}
           </div>
         );
       })()}

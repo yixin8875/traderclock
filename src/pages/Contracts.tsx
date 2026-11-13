@@ -67,14 +67,12 @@ export default function ContractsPage({ cfg, save }: PageProps) {
     <>
       <PageHead
         title="合约换月"
-        aside={<span className="rounded-full bg-amber-soft px-2.5 py-0.5 text-[11px] text-amber-ink">换月前 1 天 / 1 小时提醒</span>}
+        sub="ES / NQ 按季度换月，GC 和 BTC 按各自合约月规则。手动日期只影响当前合约的换月提醒，不改变合约代码。"
+        aside={<span className="text-[12px] text-mute">换月前 1 天 / 1 小时提醒</span>}
       />
-      <p className="mb-4 text-[13px] leading-5 text-mute">
-        ES / NQ 按季度换月，GC 和 BTC 按各自合约月规则。手动日期只影响当前合约的换月提醒，不改变合约代码。
-      </p>
 
       {error && (
-        <p role="alert" className="mb-3 rounded-lg bg-amber-soft px-3 py-2 text-[12px] text-amber-ink">
+        <p role="alert" className="mb-3 rounded-lg bg-danger-soft px-3 py-2 text-[12px] text-danger-ink">
           {error}
         </p>
       )}
@@ -89,20 +87,20 @@ export default function ContractsPage({ cfg, save }: PageProps) {
               <section
                 key={item.id}
                 data-tick={tick}
-                className={`rounded-xl border border-line px-3.5 py-2.5 ${item.enabled ? "bg-soft" : "bg-surface"}`}
+                className="rounded-xl border border-line bg-soft px-4 py-3"
               >
                 <div className="flex items-center justify-between gap-3">
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-baseline gap-x-2">
-                      <span className={`text-[13.5px] font-semibold ${item.enabled ? "" : "text-mute"}`}>{item.name}</span>
-                      <span className="num text-[11.5px] text-mute">
+                      <span className={`text-sm font-semibold ${item.enabled ? "" : "text-mute"}`}>{item.name}</span>
+                      <span className="num text-[12px] text-mute">
                         {item.current_code} → {item.next_code}
                       </span>
                       {overridden && (
-                        <span className="rounded bg-surface px-1.5 py-px text-[10px] font-medium text-amber-ink">手动</span>
+                        <span className="rounded bg-surface px-1.5 text-[11px] leading-4 text-amber-ink">手动</span>
                       )}
                     </div>
-                    <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[11.5px] text-mute">
+                    <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[12px] text-mute">
                       <span>
                         换月 <b className="font-medium text-ink">{fmtCT(item.roll_date)}</b>{" "}
                         <span className="num">{hmIn(item.roll_at, "America/Chicago")}</span> 芝加哥
@@ -120,7 +118,7 @@ export default function ContractsPage({ cfg, save }: PageProps) {
                   />
                 </div>
 
-                <div className="mt-1.5 flex flex-wrap items-center gap-2 border-t border-line/70 pt-1.5 text-[11.5px] text-mute">
+                <div className="mt-2 flex flex-wrap items-center gap-2 border-t border-line pt-2 text-[12px] text-mute">
                   <span>标准 {fmtCT(item.standard_roll_date)}</span>
                   <span className="text-line">·</span>
                   <label htmlFor={`roll-${item.id}`}>手动换月日</label>
@@ -131,13 +129,13 @@ export default function ContractsPage({ cfg, save }: PageProps) {
                     min={chicagoTodayKey()}
                     max={item.expiry_date}
                     onChange={(e) => update(item.id, { roll_override: e.target.value || null })}
-                    className="num h-6 rounded-md border border-line bg-surface px-1.5 text-[11.5px] text-ink"
+                    className="num h-7 rounded-lg border border-line bg-surface px-2 text-[12px] text-ink"
                   />
                   {overridden && (
                     <button
                       type="button"
                       onClick={() => update(item.id, { roll_override: null })}
-                      className="text-[11.5px] text-amber-ink hover:underline"
+                      className="text-[12px] text-amber-ink hover:underline"
                     >
                       恢复标准日期
                     </button>
@@ -149,7 +147,7 @@ export default function ContractsPage({ cfg, save }: PageProps) {
         </div>
       )}
 
-      <p className="mt-4 text-[11.5px] leading-5 text-mute">
+      <p className="mt-5 text-[12px] leading-5 text-mute">
         提醒会合并到同一时刻的今日页、悬浮条和系统通知里。交易所临时调整换月日时，可在这里手动覆盖。
       </p>
     </>

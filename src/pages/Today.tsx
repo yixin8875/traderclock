@@ -10,15 +10,15 @@ const BAND_BG: Record<string, string> = { 亚盘: "bg-asia", 欧盘: "bg-eu", �
 const SESSION_ROWS = ["亚盘", "欧盘", "美盘"] as const;
 
 // 时间轴尺寸（px）：左侧留名称栏，右侧按层分行，避免文字互相压住
-const GUTTER = 44;
-const TOP = 18;
-const ROW_H = 21;
-const BAND_H = 16;
-const EXTRA_H = 15;
-const MARKS_H = 12;
+const GUTTER = 48;
+const TOP = 20;
+const ROW_H = 20;
+const BAND_H = 14;
+const EXTRA_H = 14;
+const MARKS_H = 10;
 const AXIS_H = 17;
 const LANE_H = 16;
-const LANES = 3;
+const LANES = 4;
 
 export default function TodayPage({ cfg }: PageProps) {
   const [status, setStatus] = useState<Status | null>(null);
@@ -63,80 +63,102 @@ export default function TodayPage({ cfg }: PageProps) {
 
   const d = new Date(now);
   const weekday = new Intl.DateTimeFormat("zh-CN", { timeZone: "Asia/Shanghai", weekday: "short" }).format(d);
-  const dateLabel = new Intl.DateTimeFormat("zh-CN", { timeZone: "Asia/Shanghai", month: "numeric", day: "numeric" }).format(d);
+  const month = new Intl.DateTimeFormat("zh-CN", { timeZone: "Asia/Shanghai", month: "numeric" }).format(d);
+  const day = new Intl.DateTimeFormat("zh-CN", { timeZone: "Asia/Shanghai", day: "numeric" }).format(d);
 
   return (
     <>
-      <PageHead title={`今日 ${dateLabel} ${weekday}`} aside={today && <DstBadge text={today.dst_note} />} />
+      <PageHead
+        title="今日"
+        sub={`${month} 月 ${day} 日 ${weekday} · 北京时间`}
+        aside={today && <DstBadge text={today.dst_note} />}
+      />
 
-      <div className="mb-6 grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-4">
-        <div className={`num min-w-[180px] text-6xl font-semibold leading-none tracking-tight ${hot ? "text-amber-ink" : ""}`}>
+      <section className="mb-6 grid grid-cols-[auto_minmax(0,1fr)_auto] items-end gap-x-6">
+        <div className={`num text-[60px] font-semibold leading-[0.85] tracking-[-0.02em] ${hot ? "text-amber-ink" : "text-ink"}`}>
           {next ? countdown(left) : "--:--"}
         </div>
-        <div className="min-w-0 text-[13px] text-mute">
-          <span className="mb-1 flex flex-wrap items-center gap-2">
+        <div className="min-w-0 pb-0.5">
+          <div className="mb-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] text-mute">
             {chip && (
               <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium ${chip.tone}`}>
                 <i className="h-1.5 w-1.5 rounded-full bg-current" />
                 {chip.label}
               </span>
             )}
-            <span>{paused ? "已暂停至 " + hmBJ(status!.paused_until!) : "距离下次提醒"}</span>
-          </span>
-          <strong className="mb-0.5 block text-[17px] font-semibold leading-6 text-ink">{next ? describe(next) : "未来 10 天无提醒"}</strong>
-          {next?.session} · 芝加哥 {hmIn(now, "America/Chicago")}
+            <span>{paused ? `已暂停至 ${hmBJ(status!.paused_until!)}` : "距离下次提醒"}</span>
+          </div>
+          <p className="truncate text-[16px] font-medium leading-6 text-ink">{next ? describe(next) : "未来 10 天无提醒"}</p>
+          <p className="mt-0.5 text-[12px] text-mute">
+            {next ? `${next.session} · ` : ""}芝加哥 {hmIn(now, "America/Chicago")}
+          </p>
         </div>
-        <div className="flex flex-col items-end gap-1">
-          <button onClick={togglePause} className="rounded-lg border border-line bg-soft px-3.5 py-1.5 text-[13px] hover:bg-hover">
+        <div className="flex flex-col items-end gap-1.5 pb-0.5">
+          <button
+            type="button"
+            onClick={togglePause}
+            className={`h-8 rounded-lg px-3 text-[12.5px] ${
+              paused ? "bg-amber font-medium text-on-amber hover:opacity-90" : "border border-line text-ink hover:bg-soft"
+            }`}
+          >
             {paused ? "恢复提醒" : "暂停 15 分钟"}
           </button>
           {!paused && (
-            <button onClick={pauseToday} className="text-[11px] text-mute hover:text-ink">
+            <button type="button" onClick={pauseToday} className="text-[11.5px] text-mute hover:text-ink">
               今天不再提醒
             </button>
           )}
         </div>
-      </div>
+      </section>
 
       {today && <Timeline today={today} now={now} />}
 
-      <div className="mb-1.5 flex items-baseline justify-between">
-        <h2 className="text-[13px] font-semibold text-mute">接下来</h2>
-        <span className="text-[11px] text-mute">北京时间</span>
+      <div className="mb-1 flex items-baseline justify-between border-b border-line pb-2">
+        <h2 className="text-[13px] font-medium text-ink">接下来</h2>
+        <span className="text-[11.5px] text-mute">北京时间</span>
       </div>
-      <ul>
-        {upcoming.map((a) => {
-          const rel = new Date(a.at).getTime() - now;
-          const soon = rel < 60 * 60_000;
-          return (
-            <li key={a.fire_at} className="grid grid-cols-[60px_1fr_auto] items-center gap-3 border-b border-line py-2 last:border-b-0">
-              <span className="flex flex-col leading-tight">
-                <span className="num text-base font-semibold">{hmBJ(a.at)}</span>
-                <span className="text-[11px] text-mute">{dayLabel(a.at, now)}</span>
-              </span>
-              <span className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs leading-5">
-                {a.rolls.map((r) => (
-                  <span key={r} className="font-semibold text-roll-ink">{r}</span>
-                ))}
-                {a.bars.map((b) => (
-                  <span key={b} className="text-mute">{periodLabel(b)} 收盘</span>
-                ))}
-                {a.keys.map((k) => (
-                  <span key={k} className="font-semibold text-amber-ink">{k}</span>
-                ))}
-                {a.news.map((n) => (
-                  <span key={n} className="font-semibold text-red-700">{n}</span>
-                ))}
-                {a.risk && <span className="rounded bg-red-600 px-1.5 py-px text-[11px] font-semibold text-white">风险窗口</span>}
-              </span>
-              <span className="text-right leading-tight">
-                <span className={`num block text-[12px] ${soon ? "font-semibold text-amber-ink" : "text-mute"}`}>{relLabel(rel)}</span>
-                <span className="block text-[11px] text-mute">{a.session}</span>
-              </span>
-            </li>
-          );
-        })}
-      </ul>
+      {upcoming.length === 0 ? (
+        <p className="py-8 text-center text-[13px] text-mute">未来 10 天暂无提醒</p>
+      ) : (
+        <ul>
+          {upcoming.map((a) => {
+            const rel = new Date(a.at).getTime() - now;
+            const soon = rel < 10 * 60_000;
+            return (
+              <li key={a.fire_at} className="grid grid-cols-[56px_1fr_auto] items-baseline gap-x-4 border-b border-line py-3 last:border-b-0">
+                <span className="flex flex-col leading-tight">
+                  <span className="num text-[16px] font-semibold">{hmBJ(a.at)}</span>
+                  <span className="mt-0.5 text-[11px] text-mute">{dayLabel(a.at, now)}</span>
+                </span>
+                <span className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-[12.5px] leading-5">
+                  {a.rolls.map((r) => (
+                    <span key={r} className="font-medium text-roll-ink">{r}</span>
+                  ))}
+                  {a.bars.map((b) => (
+                    <span key={b} className="text-mute">{periodLabel(b)} 收盘</span>
+                  ))}
+                  {a.keys.map((k) => (
+                    <span key={k} className="font-medium text-amber-ink">{k}</span>
+                  ))}
+                  {a.news.map((n) => (
+                    <span key={n} className="text-danger-ink">{n}</span>
+                  ))}
+                  {a.risk && (
+                    <span className="inline-flex items-center gap-1.5 text-danger-ink">
+                      <i className="h-1.5 w-1.5 rounded-full bg-danger-solid" aria-hidden="true" />
+                      风险窗口
+                    </span>
+                  )}
+                </span>
+                <span className="text-right leading-tight">
+                  <span className={`num block text-[12px] ${soon ? "font-medium text-amber-ink" : "text-mute"}`}>{relLabel(rel)}</span>
+                  <span className="mt-0.5 block text-[11px] text-mute">{a.session}</span>
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </>
   );
 }
@@ -198,16 +220,21 @@ function textWidth(s: string, size: number): number {
   return w;
 }
 
-/** 分道摆放时点名称：先按刻度居中，贴近两端时向内收，避免被裁掉 */
+/** 分道摆放时点名称：同一道内绝不叠字，贴近两端时向内收 */
 function layoutLabels(marks: Mark[], xOf: (t: string | number | Date) => number, plotW: number) {
-  const used: { left: number; right: number }[][] = Array.from({ length: LANES }, () => []);
-  return marks.map((m) => {
-    const x = xOf(m.at);
+  const lanes: { left: number; right: number }[][] = Array.from({ length: LANES }, () => []);
+  const sorted = [...marks].sort((a, b) => Date.parse(a.at) - Date.parse(b.at));
+  return sorted.map((m) => {
     const width = textWidth(m.name, 11);
-    const left = Math.min(Math.max(x - width / 2, GUTTER), Math.max(GUTTER, GUTTER + plotW - width));
-    let lane = used.findIndex((boxes) => boxes.every((b) => left > b.right + 10 || left + width + 10 < b.left));
-    if (lane < 0) lane = LANES - 1;
-    used[lane].push({ left, right: left + width });
+    const maxLeft = Math.max(GUTTER, GUTTER + plotW - width);
+    let left = Math.min(Math.max(xOf(m.at) - width / 2, GUTTER), maxLeft);
+    let lane = lanes.findIndex((boxes) => boxes.every((b) => left > b.right + 12 || left + width + 12 < b.left));
+    if (lane < 0) {
+      // 所有道都被占满时加一层，宁可轴高一点，也不让文字叠在一起
+      lane = lanes.length;
+      lanes.push([]);
+    }
+    lanes[lane].push({ left, right: left + width });
     return { m, left, lane };
   });
 }
@@ -259,7 +286,7 @@ function Timeline({ today, now }: { today: Today; now: number }) {
   const nowX = Math.min(Math.max(xOf(now), GUTTER), GUTTER + plotW);
 
   return (
-    <div ref={ref} className="relative mb-7 mt-2" style={{ height }} role="group" aria-label="今日时间轴（北京时间）">
+    <div ref={ref} className="relative mb-6 mt-1" style={{ height }} role="group" aria-label="今日时间轴（北京时间）">
       {/* 每 3 小时一条参考线，读时间时不用反复对照底轴 */}
       {Array.from({ length: 9 }, (_, i) => i * 3).map((h) => (
         <i key={h} className="absolute w-px bg-line" style={{ left: GUTTER + (h / 24) * plotW, top: TOP, height: axisY - TOP }} />
@@ -268,28 +295,28 @@ function Timeline({ today, now }: { today: Today; now: number }) {
       {SESSION_ROWS.map((name, i) => (
         <span
           key={name}
-          className="absolute flex w-10 items-center gap-1 text-[10.5px] text-mute"
+          className="absolute flex w-11 items-center gap-1.5 text-[11px] text-mute"
           style={{ top: rowY[i] + ROW_H / 2, left: 0, transform: "translateY(-50%)" }}
         >
-          <i className={`h-2 w-2 rounded-[2px] ${BAND_BG[name]}`} />
+          <i className={`h-2 w-2 flex-none rounded-[2px] ring-1 ring-inset ring-ink/10 ${BAND_BG[name]}`} />
           {name}
         </span>
       ))}
       {today.closed.length > 0 && (
         <span
-          className="absolute flex w-10 items-center gap-1 text-[10.5px] text-mute"
+          className="absolute flex w-11 items-center gap-1.5 text-[11px] text-mute"
           style={{ top: closedY + EXTRA_H / 2, left: 0, transform: "translateY(-50%)" }}
         >
-          <i className="halt-stripes h-2 w-2 rounded-[2px] ring-1 ring-[#e9c9c9]" />
+          <i className="halt-stripes h-2 w-2 flex-none rounded-[2px] ring-1 ring-line" />
           休市
         </span>
       )}
       {today.risks.length > 0 && (
         <span
-          className="absolute flex w-10 items-center gap-1 text-[10.5px] text-mute"
+          className="absolute flex w-11 items-center gap-1.5 text-[11px] text-mute"
           style={{ top: riskY + EXTRA_H / 2, left: 0, transform: "translateY(-50%)" }}
         >
-          <i className="h-2 w-2 rounded-[2px] bg-red-500/30 ring-1 ring-red-400/60" />
+          <i className="h-2 w-2 flex-none rounded-[2px] bg-danger-solid/25 ring-1 ring-danger-solid/50" />
           风险
         </span>
       )}
@@ -305,10 +332,10 @@ function Timeline({ today, now }: { today: Today; now: number }) {
               <div
                 key={name + b.start}
                 title={`${name} ${hmBJ(b.start)}–${hmBJ(b.end)}`}
-                className={`absolute overflow-hidden rounded-[4px] ${BAND_BG[name]}`}
+                className={`absolute overflow-hidden rounded-[3px] ${BAND_BG[name]}`}
                 style={{ left, top: rowY[i] + (ROW_H - BAND_H) / 2, width: w, height: BAND_H }}
               >
-                {label && <span className="num block px-1 text-[10px] leading-4 text-label-strong">{label}</span>}
+                {label && <span className="num block px-1.5 text-[10.5px] leading-[14px] text-label-strong">{label}</span>}
               </div>
             );
           }),
@@ -324,7 +351,7 @@ function Timeline({ today, now }: { today: Today; now: number }) {
           <div
             key={h.start}
             title={`休市 ${hmBJ(h.start)}–${to}`}
-            className="halt-stripes absolute overflow-hidden rounded-[3px] text-center text-[10px] leading-[15px] text-weekend"
+            className="halt-stripes absolute overflow-hidden rounded-[3px] text-center text-[10.5px] leading-[14px] text-weekend"
             style={{ left, top: closedY, width: w, height: EXTRA_H }}
           >
             {fullDay && w > 70 ? today.day_note : w > 60 ? "休市" : w > 15 ? "休" : ""}
@@ -339,8 +366,8 @@ function Timeline({ today, now }: { today: Today; now: number }) {
           <div
             key={r.start}
             title={`风险窗口 ${hmBJ(r.start)}–${hmBJ(r.end)} · ${r.name}`}
-            className="absolute rounded-[3px] bg-red-500/20 ring-1 ring-inset ring-red-400/40"
-            style={{ left, top: riskY + 3, width: w, height: EXTRA_H - 6 }}
+            className="absolute rounded-[3px] bg-danger-solid/15 ring-1 ring-inset ring-danger-solid/35"
+            style={{ left, top: riskY + 2, width: w, height: EXTRA_H - 4 }}
           />
         );
       })}
@@ -354,7 +381,7 @@ function Timeline({ today, now }: { today: Today; now: number }) {
             key={m.name + m.at}
             title={`${m.name} ${hmBJ(m.at)}`}
             className={`absolute -translate-x-1/2 rounded-sm ${
-              m.news ? (m.major ? "bg-red-600" : "bg-red-400") : m.major ? "bg-ink" : "bg-mark-muted"
+              m.news ? (m.major ? "bg-news" : "bg-news/55") : m.major ? "bg-ink" : "bg-mark-muted"
             } ${m.enabled ? "" : "opacity-40"}`}
             style={{ left: xOf(m.at), top: axisY - h, width: w, height: h }}
           />
@@ -390,8 +417,8 @@ function Timeline({ today, now }: { today: Today; now: number }) {
       <div className="absolute w-[2px] rounded-full bg-amber" style={{ left: nowX - 1, top: TOP - 2, height: axisY - TOP + 2 }} />
       <i className="absolute h-2 w-2 rounded-full bg-amber" style={{ left: nowX - 4, top: axisY - 4 }} />
       <span
-        className="num absolute -translate-x-1/2 rounded-full bg-surface px-1.5 text-[10.5px] font-semibold text-amber-ink shadow-[0_0_0_1px_rgba(240,160,32,.3)]"
-        style={{ left: Math.min(Math.max(nowX, GUTTER + 22), GUTTER + plotW - 22), top: TOP - 18 }}
+        className="num absolute -translate-x-1/2 rounded-full bg-surface px-2 text-[10.5px] font-semibold leading-4 text-amber-ink ring-1 ring-amber/30"
+        style={{ left: Math.min(Math.max(nowX, GUTTER + 24), GUTTER + plotW - 24), top: TOP - 18 }}
       >
         {hmBJ(now)}
       </span>

@@ -2,7 +2,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { listen } from "@tauri-apps/api/event";
 import { api, type Impact, type NewsInfo } from "../lib/api";
 import { hmBJ } from "../lib/format";
-import { Group, PageHead, Row, Switch } from "../components/ui";
+import { Group, Row, Switch } from "../components/ui";
 import type { PageProps } from "../App";
 
 const IMPACTS: { id: Impact; label: string }[] = [
@@ -13,7 +13,7 @@ const IMPACTS: { id: Impact; label: string }[] = [
 const RISK_MIN = [3, 5, 10, 15, 30];
 const LEADS = [0, 1, 2, 5, 10];
 const PREWARN = [0, 10, 15, 30, 60];
-const DOT: Record<string, string> = { high: "bg-red-600", medium: "bg-orange-400", low: "bg-yellow-300" };
+const DOT: Record<string, string> = { high: "bg-danger-solid", medium: "bg-amber", low: "bg-mark-muted" };
 
 const dayBJ = (iso: string) =>
   new Intl.DateTimeFormat("zh-CN", { timeZone: "Asia/Shanghai", month: "numeric", day: "numeric", weekday: "short" }).format(
@@ -61,7 +61,6 @@ export default function NewsPage({ cfg, save }: PageProps) {
 
   return (
     <>
-      <PageHead title="财经日历" />
       <Group title="数据提醒">
         <Row label="启用" hint="数据来自 ForexFactory 官方周数据文件">
           <Switch checked={cfg.news_enabled} label="启用财经日历提醒" onChange={(v) => save({ ...cfg, news_enabled: v })} />
@@ -129,7 +128,7 @@ export default function NewsPage({ cfg, save }: PageProps) {
       </Group>
 
       <div className="mb-2 flex items-center justify-between">
-        <span className={`text-[12.5px] ${info?.state.error ? "text-red-700" : "text-mute"}`}>{msg || status}</span>
+        <span className={`text-[12.5px] ${info?.state.error ? "text-danger-ink" : "text-mute"}`}>{msg || status}</span>
         <button
           onClick={refresh}
           disabled={busy}
@@ -145,7 +144,7 @@ export default function NewsPage({ cfg, save }: PageProps) {
         [...byDay].map(([day, list]) => (
           <Group key={day} title={day}>
             {list.map((e) => (
-              <div key={e.at + e.title} className="grid grid-cols-[52px_12px_1fr_auto] items-center gap-2 px-4 py-2 text-[13px]">
+              <div key={e.at + e.title} className="grid grid-cols-[52px_12px_1fr_auto] items-center gap-2 py-2.5 text-[12.5px]">
                 <span className="num font-semibold">{hmBJ(e.at)}</span>
                 <i className={`h-2 w-2 rounded-full ${DOT[e.impact]}`} title={IMPACTS.find((i) => i.id === e.impact)?.label} />
                 <span>
@@ -171,7 +170,7 @@ function Chip({ on, onClick, children }: { on: boolean; onClick: () => void; chi
     <button
       onClick={onClick}
       aria-pressed={on}
-      className={`rounded-md px-2.5 py-0.5 text-[12.5px] ${on ? "bg-ink font-semibold text-white" : "bg-soft text-mute hover:text-ink"}`}
+      className={`rounded-md px-2.5 py-1 text-[12px] ${on ? "bg-ink font-medium text-on-ink" : "bg-soft text-mute hover:text-ink"}`}
     >
       {children}
     </button>

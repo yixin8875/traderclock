@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Group, PageHead, Row, Switch } from "../components/ui";
+import { Group, Row, Switch } from "../components/ui";
 import { periodLabel } from "../lib/format";
 import type { PageProps } from "../App";
 
@@ -19,9 +19,8 @@ export default function PeriodsPage({ cfg, save }: PageProps) {
 
   return (
     <>
-      <PageHead title="周期" />
       <section className="mb-5">
-        <h2 className="mb-1.5 text-[12.5px] text-mute">K 线周期，可多选。多个周期同时收盘时只提醒一次。</h2>
+        <p className="mb-2 text-[12.5px] text-mute">K 线周期，可多选。多个周期同时收盘时只提醒一次。</p>
         <div className="flex flex-wrap gap-2">
           {OPTIONS.map((p) => {
             const on = cfg.periods.includes(p);
@@ -30,7 +29,7 @@ export default function PeriodsPage({ cfg, save }: PageProps) {
                 key={p}
                 aria-pressed={on}
                 onClick={() => toggle(p)}
-                className={`num h-9 min-w-14 rounded-lg px-3 text-sm ${on ? "bg-ink font-semibold text-white" : "bg-soft text-ink hover:bg-hover"}`}
+                className={`num h-9 min-w-14 rounded-lg px-3 text-sm ${on ? "bg-ink font-medium text-on-ink" : "bg-soft text-ink hover:bg-hover"}`}
               >
                 {periodLabel(p)}
               </button>
@@ -90,7 +89,7 @@ function LeadInput({ value, onChange }: { value: number; onChange: (v: number) =
           key={s}
           aria-pressed={value === s}
           onClick={() => onChange(s)}
-          className={`rounded-md px-2 py-1 text-xs ${value === s ? "bg-ink text-white" : "bg-soft"}`}
+          className={`rounded-md px-2 py-1 text-[12px] ${value === s ? "bg-ink text-on-ink" : "bg-soft"}`}
         >
           {s === 0 ? "准点" : `${s}s`}
         </button>
@@ -105,7 +104,7 @@ function LeadInput({ value, onChange }: { value: number; onChange: (v: number) =
         onBlur={commit}
         onKeyDown={(e) => e.key === "Enter" && commit()}
         aria-label="提前秒数"
-        className="num ml-1 w-16 rounded-md border border-line bg-surface px-2 py-1 text-right text-sm"
+        className="num ml-1 w-16 rounded-lg border border-line bg-surface px-2 py-1 text-right text-sm"
       />
       <span className="text-sm text-mute">秒</span>
     </div>
@@ -124,7 +123,7 @@ function TimeInput({ value, onChange, label }: { value: number; onChange: (v: nu
         const [h, m] = e.target.value.split(":").map(Number);
         if (Number.isFinite(h) && Number.isFinite(m)) onChange(h * 60 + m);
       }}
-      className="num rounded-md border border-line bg-surface px-2 py-1 text-sm"
+      className="num rounded-lg border border-line bg-surface px-2 py-1 text-sm"
     />
   );
 }

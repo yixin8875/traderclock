@@ -144,8 +144,8 @@ export default function App() {
 
   return (
     <div className="grid h-full grid-cols-[176px_1fr]">
-      <nav className="flex flex-col gap-0.5 bg-soft px-2.5 pb-3.5 pt-4" aria-label="主导航">
-        <div className="mb-4 flex items-center gap-2 px-3 font-semibold">
+      <nav className="flex flex-col gap-0.5 bg-soft px-3 pb-4 pt-4" aria-label="主导航">
+        <div className="mb-5 flex items-center gap-2 px-2 font-semibold">
           <Logo /> TradeClock
         </div>
         {PAGES.map((p) => {
@@ -156,7 +156,7 @@ export default function App() {
               type="button"
               onClick={() => openPage(p.id)}
               aria-current={active ? "page" : undefined}
-              className={`nav-item rounded-lg px-3 py-2 text-left text-sm ${
+              className={`nav-item rounded-lg px-2 py-2 text-left text-sm ${
                 active ? "bg-surface font-semibold text-ink shadow-[0_1px_2px_rgba(20,30,45,.08)]" : "text-mute hover:text-ink"
               }`}
             >
@@ -166,7 +166,7 @@ export default function App() {
         })}
 
         <div className="mt-auto space-y-2">
-          <p className="px-3 text-xs leading-5 text-mute">日历数据 {calVer || "--"}</p>
+          <p className="px-2 text-[11.5px] leading-5 text-mute">日历数据 {calVer || "--"}</p>
           <button
             type="button"
             onClick={() => {
@@ -174,7 +174,7 @@ export default function App() {
               setSettingsOpen(true);
             }}
             aria-current={settingsOpen ? "page" : undefined}
-            className={`nav-item flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm ${
+            className={`nav-item flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-sm ${
               settingsOpen ? "bg-surface font-semibold text-ink shadow-[0_1px_2px_rgba(20,30,45,.08)]" : "text-mute hover:text-ink"
             }`}
           >
@@ -188,26 +188,26 @@ export default function App() {
         {pendingUpdate && (
           <div
             role="status"
-            className="mb-3 flex items-center justify-between gap-3 rounded-lg bg-amber-soft px-3 py-2 text-[13px] text-amber-ink"
+            className="mb-4 flex items-center justify-between gap-3 rounded-lg border border-line bg-soft px-3 py-2 text-[12.5px]"
           >
             <span>
-              发现新版本 <b className="num">v{pendingUpdate.version}</b>，当前 v{pendingUpdate.currentVersion}
+              发现新版本 <b className="num font-medium">v{pendingUpdate.version}</b>，当前 v{pendingUpdate.currentVersion}
             </span>
-            <span className="flex flex-none gap-1.5">
+            <span className="flex flex-none items-center gap-1">
               <button
                 type="button"
                 onClick={() => {
                   setSettingsTab("about");
                   setSettingsOpen(true);
                 }}
-                className="rounded-md bg-ink px-2.5 py-1 text-[12px] font-medium text-white hover:opacity-90"
+                className="rounded-md bg-amber px-2.5 py-1 text-[12px] font-medium text-on-amber hover:opacity-90"
               >
                 查看更新
               </button>
               <button
                 type="button"
                 onClick={() => setPendingUpdate(null)}
-                className="rounded-md px-2 py-1 text-[12px] hover:bg-surface/70"
+                className="rounded-md px-2 py-1 text-[12px] text-mute hover:text-ink"
               >
                 稍后
               </button>
@@ -215,7 +215,7 @@ export default function App() {
           </div>
         )}
         {error && (
-          <p role="alert" className="mb-3 rounded-lg bg-amber-soft px-3 py-2 text-sm text-amber-ink">
+          <p role="alert" className="mb-4 rounded-lg bg-danger-soft px-3 py-2 text-[12.5px] text-danger-ink">
             {error}
           </p>
         )}
@@ -244,7 +244,7 @@ function Logo() {
 
 function GearIcon() {
   return (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
       <circle cx="12" cy="12" r="3.2" />
       <path d="M12 2.8v3M12 18.2v3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M2.8 12h3M18.2 12h3M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1" strokeLinecap="round" />
     </svg>

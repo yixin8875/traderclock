@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { api, type Diagnostics } from "../lib/api";
 import { loadUiPrefs, normalizeUiPrefs, saveUiPrefs } from "../lib/ui-prefs";
-import { Group, PageHead, Row } from "../components/ui";
+import { Group, Row } from "../components/ui";
 import type { PageProps } from "../App";
 
 function downloadJson(name: string, text: string) {
@@ -23,9 +23,9 @@ function stampName() {
 }
 
 const BTN =
-  "rounded-md border border-line bg-surface px-2.5 py-1 text-[12px] text-ink hover:bg-soft disabled:opacity-50";
+  "rounded-lg border border-line bg-surface px-2.5 py-1 text-[12px] text-ink hover:bg-soft disabled:opacity-50";
 const PRIMARY =
-  "rounded-md bg-ink px-2.5 py-1 text-[12px] font-medium text-white hover:opacity-90 disabled:opacity-50";
+  "rounded-lg bg-amber px-2.5 py-1 text-[12px] font-medium text-on-amber hover:opacity-90 disabled:opacity-50";
 
 export default function DataPage({ save }: PageProps) {
   const [diag, setDiag] = useState<Diagnostics | null>(null);
@@ -142,8 +142,6 @@ export default function DataPage({ save }: PageProps) {
 
   return (
     <>
-      <PageHead title="数据与诊断" />
-
       <Group title="备份与恢复">
         <Row label="导出配置" hint="提醒设置、自定义日历、窗口和界面偏好">
           <button type="button" onClick={exportBackup} disabled={busy} className={PRIMARY}>
@@ -220,7 +218,7 @@ export default function DataPage({ save }: PageProps) {
         </p>
       )}
 
-      <p className="text-[12.5px] leading-6 text-mute">
+      <p className="text-[12.5px] leading-5 text-mute">
         备份文件是普通 JSON，可以自己保存或放到另一台电脑导入。自定义提示音文件不会写进 JSON；换机器后如果音频不存在，会自动退回系统提示音。
       </p>
     </>

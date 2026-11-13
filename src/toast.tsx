@@ -41,20 +41,20 @@ function Toast() {
       className="flex h-full flex-col overflow-hidden bg-surface [animation:toast-in_.3s_cubic-bezier(.2,.8,.2,1)]"
     >
       {alert.risk && (
-        <div className="bg-red-600 px-4 py-1 text-xs font-semibold text-white" title={alert.risk}>
+        <div className="bg-danger-solid px-4 py-1 text-xs font-medium text-white" title={alert.risk}>
           风险窗口，谨慎开新仓 · {alert.risk}
         </div>
       )}
       {alert.keys.length > 0 && (
-        <div className="bg-amber-soft px-4 py-1 text-xs font-semibold text-amber-ink">{alert.keys.join(" + ")}</div>
+        <div className="bg-amber-soft px-4 py-1 text-xs font-medium text-amber-ink">{alert.keys.join(" + ")}</div>
       )}
       {alert.news.length > 0 && (
-        <div className="bg-danger-soft px-4 py-1 text-xs font-semibold text-danger-ink" title={alert.news.join("\n")}>
+        <div className="bg-danger-soft px-4 py-1 text-xs font-medium text-danger-ink" title={alert.news.join("\n")}>
           {alert.news.length > 1 ? `${alert.news[0]} 等 ${alert.news.length} 条` : alert.news[0]}
         </div>
       )}
       {alert.rolls.length > 0 && (
-        <div className="bg-roll-soft px-4 py-1 text-xs font-semibold text-roll-ink" title={alert.rolls.join("\n")}>
+        <div className="bg-roll-soft px-4 py-1 text-xs font-medium text-roll-ink" title={alert.rolls.join("\n")}>
           {alert.rolls.join(" + ")}
         </div>
       )}
@@ -69,10 +69,10 @@ function Toast() {
           芝加哥 {hmIn(alert.at, "America/Chicago")} · {alert.session}
         </p>
         <div className="flex justify-end gap-2">
-          <button onClick={() => api.pause(15).then(close)} className="rounded-md bg-soft px-3 py-1 text-[12.5px]">
+          <button onClick={() => api.pause(15).then(close)} className="rounded-lg bg-soft px-3 py-1 text-[12.5px]">
             暂停 15 分钟
           </button>
-          <button onClick={close} className="rounded-md bg-ink px-3 py-1 text-[12.5px] font-semibold text-white">
+          <button onClick={close} className="rounded-lg bg-amber px-3 py-1 text-[12.5px] font-medium text-on-amber">
             已看
           </button>
         </div>

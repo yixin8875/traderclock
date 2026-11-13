@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Group, PageHead, Row, Switch } from "../components/ui";
+import { Group, Row, Switch } from "../components/ui";
 import { api, type SoundMode } from "../lib/api";
 import type { PageProps } from "../App";
 
@@ -53,7 +53,6 @@ export default function AlertsPage({ cfg, save }: PageProps) {
 
   return (
     <>
-      <PageHead title="提醒方式" />
       <Group>
         <Row label="Windows 系统通知" hint="出现在通知中心">
           <Switch checked={cfg.notify} onChange={(v) => save({ ...cfg, notify: v })} label="Windows 系统通知" />
@@ -66,7 +65,7 @@ export default function AlertsPage({ cfg, save }: PageProps) {
             <select
               value={cfg.toast_seconds}
               onChange={(e) => save({ ...cfg, toast_seconds: Number(e.target.value) })}
-              className="rounded-md border border-line bg-surface px-2 py-1 text-sm"
+              className="rounded-lg border border-line bg-surface px-2 py-1 text-sm"
             >
               {SECONDS.map((s) => (
                 <option key={s} value={s}>{s} 秒后</option>
@@ -85,11 +84,11 @@ export default function AlertsPage({ cfg, save }: PageProps) {
                 key={m.id}
                 onClick={() => pickMode(m.id)}
                 className={`rounded-lg px-3 py-2.5 text-left transition-colors ${
-                  on ? "bg-surface shadow-sm ring-1 ring-amber" : "hover:bg-surface/60"
+                  on ? "bg-surface ring-1 ring-amber/60" : "hover:bg-surface/70"
                 }`}
               >
-                <div className={`text-sm ${on ? "font-semibold text-amber-ink" : ""}`}>{m.label}</div>
-                <div className="mt-0.5 text-[11.5px] leading-snug text-mute">{m.hint}</div>
+                <div className={`text-sm ${on ? "font-medium text-amber-ink" : ""}`}>{m.label}</div>
+                <div className="mt-1 text-[11.5px] leading-snug text-mute">{m.hint}</div>
               </button>
             );
           })}
@@ -100,7 +99,7 @@ export default function AlertsPage({ cfg, save }: PageProps) {
             <button
               disabled={busy}
               onClick={() => fileRef.current?.click()}
-              className="rounded-md bg-surface px-3 py-1 text-[13px] shadow-sm disabled:opacity-50"
+              className="rounded-lg bg-surface px-3 py-1 text-[12.5px] shadow-sm disabled:opacity-50"
             >
               {busy ? "正在保存…" : "更换"}
             </button>
@@ -120,7 +119,7 @@ export default function AlertsPage({ cfg, save }: PageProps) {
                 className="w-32 accent-amber"
                 aria-label="音量"
               />
-              <button onClick={() => api.testSound()} className="rounded-md bg-surface px-3 py-1 text-[13px] shadow-sm">
+              <button onClick={() => api.testSound()} className="rounded-lg bg-surface px-3 py-1 text-[12.5px] shadow-sm">
                 试听
               </button>
             </div>
@@ -135,8 +134,8 @@ export default function AlertsPage({ cfg, save }: PageProps) {
 
       <input ref={fileRef} type="file" accept=".wav,.mp3,.ogg,.flac,audio/*" hidden onChange={onFile} />
 
-      {msg && <p className={`mb-3 text-[13px] ${msg.error ? "text-red-600" : "text-mute"}`}>{msg.text}</p>}
-      <p className="text-[13px] text-mute">
+      {msg && <p className={`mb-3 text-[12.5px] ${msg.error ? "text-danger-ink" : "text-mute"}`}>{msg.text}</p>}
+      <p className="text-[12.5px] leading-5 text-mute">
         自定义音频支持 WAV、MP3、OGG、FLAC，5 MB 以内，最多播放 10 秒。文件损坏或语音不可用时会自动改用系统提示音。
       </p>
     </>
@@ -153,7 +152,7 @@ function SoundRow(props: { label: string; hint: string; value: SoundMode | null;
           value={value ?? ""}
           aria-label={`${label}提示音`}
           onChange={(e) => onChange((e.target.value || null) as SoundMode | null)}
-          className="rounded-md border border-line bg-surface px-2 py-1 text-sm"
+          className="rounded-lg border border-line bg-surface px-2 py-1 text-sm"
         >
           <option value="">跟随上面</option>
           {MODES.filter((m) => m.id !== "custom" || hasFile).map((m) => (
@@ -162,7 +161,7 @@ function SoundRow(props: { label: string; hint: string; value: SoundMode | null;
         </select>
         <button
           onClick={() => api.testSound(value ?? undefined)}
-          className="rounded-md bg-surface px-3 py-1 text-[13px] shadow-sm"
+          className="rounded-lg bg-surface px-3 py-1 text-[12.5px] shadow-sm"
         >
           试听
         </button>

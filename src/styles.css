@@ -4,6 +4,8 @@
    颜色用语义名，页面里不再散落 #hex，切主题时只换这一层。 */
 @theme {
   --color-ink: #18202b;
+  --color-on-ink: #ffffff;
+  --color-on-amber: #18202b;
   --color-mute: #6b7684;
   --color-line: #e4e8ee;
   --color-soft: #f5f7fa;
@@ -34,7 +36,13 @@
   --color-news: #e05757;
   --color-news-soft: #fdecec;
   --color-news-ink: #a33f3f;
+  --color-danger-solid: #a33f3f;
   --color-weekend: #b05050;
+  /* 悬浮条始终深色，浮在桌面上，不随主题翻转 */
+  --color-hud: #18202b;
+  --color-hud-soft: #26313d;
+  --color-hud-ink: #f2f6fa;
+  --color-hud-mute: #9aa8b6;
   --color-axis: #cfd6df;
   --color-mark-muted: #b6bfca;
   --color-label: #9aa4b0;
@@ -46,6 +54,8 @@
 
 [data-theme="dark"] {
   --color-ink: #e6edf3;
+  --color-on-ink: #151b22;
+  --color-on-amber: #18202b;
   --color-mute: #8f9eae;
   --color-line: #2b3541;
   --color-soft: #171e26;
@@ -69,6 +79,7 @@
   --color-danger-soft: #3a2226;
   --color-danger-hover: #4a2b31;
   --color-danger-ink: #ff9b9b;
+  --color-danger-solid: #b23d3d;
   --color-roll: #9b8bdb;
   --color-roll-soft: #252b4a;
   --color-roll-ink: #b4bdff;
@@ -115,6 +126,29 @@ body {
   background: repeating-linear-gradient(135deg, var(--color-halt) 0 4px, var(--color-halt-2) 4px 8px);
 }
 
+/* 滚动条跟随主题，深色下不再露出浅色系统条 */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-axis) transparent;
+}
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-axis);
+  border: 3px solid transparent;
+  border-radius: 8px;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-mark-muted);
+  background-clip: content-box;
+}
+
 /* 深色下原生控件跟随主题 */
 [data-theme="dark"] input,
 [data-theme="dark"] select,
@@ -131,17 +165,17 @@ body {
 
 /* 紧凑密度只缩间距，不动字号，避免信息变得难读 */
 [data-density="compact"] main {
-  padding: 14px 22px;
+  padding: 16px 24px;
 }
 [data-density="compact"] .page-head {
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 [data-density="compact"] .group {
   margin-bottom: 12px;
 }
 [data-density="compact"] .row {
-  padding-top: 7px;
-  padding-bottom: 7px;
+  padding-top: 8px;
+  padding-bottom: 8px;
 }
 [data-density="compact"] .nav-item {
   padding-top: 6px;

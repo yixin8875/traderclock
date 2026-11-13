@@ -15,9 +15,9 @@ const TABS = [
   { id: "keys", label: "关键时点", Comp: KeysPage },
   { id: "news", label: "财经日历", Comp: NewsPage },
   { id: "alerts", label: "提醒方式", Comp: AlertsPage },
-  { id: "general", label: "常规与外观", Comp: GeneralPage },
-  { id: "data", label: "数据与诊断", Comp: DataPage },
-  { id: "about", label: "关于与更新", Comp: AboutPage },
+  { id: "general", label: "外观", Comp: GeneralPage },
+  { id: "data", label: "数据", Comp: DataPage },
+  { id: "about", label: "关于", Comp: AboutPage },
 ] as const;
 
 export type SettingsTabId = (typeof TABS)[number]["id"];
@@ -31,24 +31,24 @@ export default function SettingsPage({
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <nav className="mb-3 flex flex-wrap items-center gap-1.5 border-b border-line pb-2.5" aria-label="设置分类">
+      <nav className="mb-5 flex flex-wrap items-center gap-1 border-b border-line pb-3" aria-label="设置分类">
         {TABS.map((t) => (
           <button
             key={t.id}
             type="button"
             onClick={() => setTab(t.id)}
             aria-current={tab === t.id ? "page" : undefined}
-            className={`settings-tab rounded-lg px-3 py-1.5 text-[12.5px] transition-colors ${
+            className={`settings-tab rounded-lg px-2.5 py-1.5 text-[12.5px] transition-colors ${
               tab === t.id
-                ? "bg-surface font-semibold text-ink shadow-sm ring-1 ring-line"
-                : "text-mute hover:bg-soft hover:text-ink"
+                ? "bg-surface font-medium text-ink shadow-[0_1px_2px_rgba(20,30,45,.08)]"
+                : "text-mute hover:text-ink"
             }`}
           >
             {t.label}
           </button>
         ))}
       </nav>
-      <div className="min-h-0 flex-1 overflow-auto pr-1">
+      <div className="min-h-0 flex-1 overflow-auto pr-2">
         <Active {...props} />
       </div>
     </div>

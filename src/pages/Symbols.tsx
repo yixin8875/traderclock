@@ -1,5 +1,5 @@
 import type { TemplateId } from "../lib/api";
-import { Group, PageHead, Row, Switch } from "../components/ui";
+import { Group, Row, Switch } from "../components/ui";
 import type { PageProps } from "../App";
 
 const META: Record<TemplateId, { name: string; hint: string; weekend?: boolean }> = {
@@ -14,8 +14,7 @@ export default function SymbolsPage({ cfg, save }: PageProps) {
 
   return (
     <>
-      <PageHead title="品种" />
-      <p className="mb-4 text-[13px] text-mute">只在所选 CME 品种的交易时段内提醒，多个品种取并集。</p>
+      <p className="mb-4 text-[12.5px] text-mute">只在所选 CME 品种的交易时段内提醒，多个品种取并集。</p>
       <Group title="CME">
         {cfg.templates.map((t) => (
           <Row key={t.id} label={META[t.id].name} hint={META[t.id].hint}>

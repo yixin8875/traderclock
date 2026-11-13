@@ -150,12 +150,12 @@ function Bar() {
   const highLeft = nextHigh ? new Date(nextHigh.at).getTime() - now : 0;
 
   const tone = paused
-    ? "bg-slate-700 text-slate-300"
+    ? "bg-hud-soft text-hud-mute"
     : risk
-      ? "bg-red-700 text-white"
+      ? "bg-danger-solid text-white"
       : soon
-        ? "bg-amber-500 text-slate-900"
-        : "bg-slate-900 text-white";
+        ? "bg-amber text-on-amber"
+        : "bg-hud text-hud-ink";
 
   const twoLine = prefs.barStyle !== "one-line";
   const title = [
@@ -179,7 +179,7 @@ function Bar() {
       {twoLine ? (
         <>
           <div className="flex w-full items-center gap-2 text-[12px]">
-            <span className={`h-2 w-2 shrink-0 rounded-full ${paused ? "bg-slate-400" : st?.open ? "bg-emerald-400" : "bg-slate-400"}`} />
+            <span className={`h-2 w-2 shrink-0 rounded-full ${!paused && st?.open ? "bg-success" : "bg-hud-mute"}`} />
             {!st ? (
               <span className="opacity-70">TradeClock</span>
             ) : paused ? (
@@ -187,13 +187,13 @@ function Bar() {
             ) : (
               <>
                 <span className="min-w-0 flex-1 truncate">
-                  {risk && "⚠ "}下次 {label(st)}
+                  下次 {label(st)}
                 </span>
                 {st.next && <b className="num shrink-0 font-semibold tabular-nums">{countdown(left)}</b>}
               </>
             )}
           </div>
-          <div className="flex w-full items-center justify-between gap-2 text-[10.5px] opacity-70">
+          <div className="flex w-full items-center justify-between gap-2 text-[11px] opacity-80">
             <span className="num shrink-0">
               {current ?? "—"} · {st?.open ? "交易中" : "休市"}
             </span>
@@ -214,7 +214,7 @@ function Bar() {
         </>
       ) : (
         <>
-          <span className={`h-2 w-2 shrink-0 rounded-full ${paused ? "bg-slate-400" : st?.open ? "bg-emerald-400" : "bg-slate-400"}`} />
+          <span className={`h-2 w-2 shrink-0 rounded-full ${!paused && st?.open ? "bg-success" : "bg-hud-mute"}`} />
           {!st ? (
             <span className="opacity-70">TradeClock</span>
           ) : paused ? (
@@ -222,7 +222,7 @@ function Bar() {
           ) : (
             <>
               <span className="min-w-0 flex-1 truncate">
-                {risk && "⚠ "}下次 {label(st)}
+                下次 {label(st)}
               </span>
               {st.next && <b className="num font-semibold tabular-nums">{countdown(left)}</b>}
             </>
