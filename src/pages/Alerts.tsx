@@ -1,5 +1,8 @@
 import { useRef, useState } from "react";
-import { Group, Row, Switch } from "../components/ui";
+import { Group, Row, SelectField, SliderField, Switch, type Option } from "../components/kit";
+import { Alert, AlertDescription } from "../components/ui/alert";
+import { Button } from "../components/ui/button";
+import { ToggleGroup, ToggleGroupItem } from "../components/ui/toggle-group";
 import { api, type SoundMode } from "../lib/api";
 import type { PageProps } from "../App";
 
@@ -12,6 +15,11 @@ const MODES: { id: SoundMode; label: string; hint: string }[] = [
   { id: "voice", label: "语音播报", hint: "读出“美股开盘，15 分钟收盘”" },
   { id: "alarm", label: "闹钟铃声", hint: "Windows 闹钟，更醒目" },
   { id: "off", label: "静音", hint: "只弹窗不出声" },
+];
+
+const SOUND_OPTIONS: Option<SoundMode | "">[] = [
+  { value: "", label: "跟随上面" },
+  ...MODES.map((m) => ({ value: m.id as SoundMode | "", label: m.label })),
 ];
 
 export default function AlertsPage({ cfg, save }: PageProps) {
@@ -62,80 +70,94 @@ export default function AlertsPage({ cfg, save }: PageProps) {
         </Row>
         {cfg.toast && (
           <Row label="浮窗自动关闭">
-            <select
+            <SelectField
+              label="浮窗自动关闭时间"
+              options={SECONDS.map((s) => ({ value: s, label: `${s} 秒后` }))}
               value={cfg.toast_seconds}
-              onChange={(e) => save({ ...cfg, toast_seconds: Number(e.target.value) })}
-              className="rounded-lg border border-line bg-surface px-2 py-1 text-sm"
-            >
-              {SECONDS.map((s) => (
-                <option key={s} value={s}>{s} 秒后</option>
-              ))}
-            </select>
+              onChange={(toast_seconds) => save({ ...cfg, toast_seconds })}
+            />
           </Row>
         )}
       </Group>
 
       <Group title="提示音">
-        <li className="grid grid-cols-5 gap-2 py-3">
-          {MODES.map((m) => {
-            const on = cfg.sound_mode === m.id;
-            return (
-              <button
+        <div className="py-3">
+          <ToggleGroup
+            aria-label="提示音"
+            className="grid w-full grid-cols-5 gap-2"
+            multiple={false}
+            value={[cfg.sound_mode]}
+            onValueChange={(next) => {
+              const picked = next[0];
+              if (picked) pickMode(picked as SoundMode);
+            }}
+          >
+            {MODES.map((m) => (
+              <ToggleGroupItem
                 key={m.id}
-                onClick={() => pickMode(m.id)}
-                className={`rounded-lg px-3 py-2.5 text-left transition-colors ${
-                  on ? "bg-surface ring-1 ring-amber/60" : "hover:bg-surface/70"
-                }`}
+                className="h-auto flex-col items-start justify-start rounded-lg border border-border bg-card px-3 py-2.5 text-left data-pressed:border-primary/60 data-pressed:bg-primary/8 data-pressed:text-foreground sm:h-auto"
+                value={m.id}
               >
-                <div className={`text-sm ${on ? "font-medium text-amber-ink" : ""}`}>{m.label}</div>
-                <div className="mt-1 text-[11.5px] leading-snug text-mute">{m.hint}</div>
-              </button>
-            );
-          })}
-        </li>
+                <span className="text-sm font-medium">{m.label}</span>
+                <span className="mt-1 whitespace-normal text-[11.5px] font-normal leading-snug text-muted-foreground">
+                  {m.hint}
+                </span>
+              </ToggleGroupItem>
+            ))}
+          </ToggleGroup>
+        </div>
 
         {cfg.sound_mode === "custom" && (
           <Row label="音频文件" hint={cfg.sound_name ?? "未上传"}>
-            <button
-              disabled={busy}
-              onClick={() => fileRef.current?.click()}
-              className="rounded-lg bg-surface px-3 py-1 text-[12.5px] shadow-sm disabled:opacity-50"
-            >
+            <Button disabled={busy} size="xs" variant="outline" onClick={() => fileRef.current?.click()}>
               {busy ? "正在保存…" : "更换"}
-            </button>
+            </Button>
           </Row>
         )}
 
         {cfg.sound_mode !== "off" && (
           <Row label="音量" hint={`${cfg.volume}`}>
             <div className="flex items-center gap-3">
-              <input
-                type="range"
-                min={0}
-                max={100}
+              <SliderField
+                className="w-32"
+                label="音量"
                 step={5}
                 value={cfg.volume}
-                onChange={(e) => save({ ...cfg, volume: Number(e.target.value) })}
-                className="w-32 accent-amber"
-                aria-label="音量"
+                onChange={(volume) => save({ ...cfg, volume })}
               />
-              <button onClick={() => api.testSound()} className="rounded-lg bg-surface px-3 py-1 text-[12.5px] shadow-sm">
+              <Button size="xs" variant="outline" onClick={() => api.testSound()}>
                 试听
-              </button>
+              </Button>
             </div>
           </Row>
         )}
       </Group>
 
       <Group title="按提醒类型区分声音">
-        <SoundRow label="关键时点" hint="开盘、收盘、休市等" value={cfg.sound_key} onChange={(v) => save({ ...cfg, sound_key: v })} hasFile={!!cfg.sound_file} />
-        <SoundRow label="财经数据" hint="数据发布和预警" value={cfg.sound_news} onChange={(v) => save({ ...cfg, sound_news: v })} hasFile={!!cfg.sound_file} />
+        <SoundRow
+          hasFile={!!cfg.sound_file}
+          hint="开盘、收盘、休市等"
+          label="关键时点"
+          value={cfg.sound_key}
+          onChange={(v) => save({ ...cfg, sound_key: v })}
+        />
+        <SoundRow
+          hasFile={!!cfg.sound_file}
+          hint="数据发布和预警"
+          label="财经数据"
+          value={cfg.sound_news}
+          onChange={(v) => save({ ...cfg, sound_news: v })}
+        />
       </Group>
 
-      <input ref={fileRef} type="file" accept=".wav,.mp3,.ogg,.flac,audio/*" hidden onChange={onFile} />
+      <input ref={fileRef} accept=".wav,.mp3,.ogg,.flac,audio/*" hidden type="file" onChange={onFile} />
 
-      {msg && <p className={`mb-3 text-[12.5px] ${msg.error ? "text-danger-ink" : "text-mute"}`}>{msg.text}</p>}
-      <p className="text-[12.5px] leading-5 text-mute">
+      {msg && (
+        <Alert className="mb-3 py-2" variant={msg.error ? "error" : "success"}>
+          <AlertDescription className="text-[12.5px]">{msg.text}</AlertDescription>
+        </Alert>
+      )}
+      <p className="text-[12.5px] leading-5 text-muted-foreground">
         自定义音频支持 WAV、MP3、OGG、FLAC，5 MB 以内，最多播放 10 秒。文件损坏或语音不可用时会自动改用系统提示音。
       </p>
     </>
@@ -143,28 +165,28 @@ export default function AlertsPage({ cfg, save }: PageProps) {
 }
 
 // “跟随上面”表示和 K 线收盘用同一种声音
-function SoundRow(props: { label: string; hint: string; value: SoundMode | null; onChange: (v: SoundMode | null) => void; hasFile: boolean }) {
+function SoundRow(props: {
+  label: string;
+  hint: string;
+  value: SoundMode | null;
+  onChange: (v: SoundMode | null) => void;
+  hasFile: boolean;
+}) {
   const { label, hint, value, onChange, hasFile } = props;
+  const options = SOUND_OPTIONS.filter((m) => m.value !== "custom" || hasFile);
   return (
     <Row label={label} hint={hint}>
       <div className="flex items-center gap-2">
-        <select
+        <SelectField
+          className="min-w-28"
+          label={`${label}提示音`}
+          options={options}
           value={value ?? ""}
-          aria-label={`${label}提示音`}
-          onChange={(e) => onChange((e.target.value || null) as SoundMode | null)}
-          className="rounded-lg border border-line bg-surface px-2 py-1 text-sm"
-        >
-          <option value="">跟随上面</option>
-          {MODES.filter((m) => m.id !== "custom" || hasFile).map((m) => (
-            <option key={m.id} value={m.id}>{m.label}</option>
-          ))}
-        </select>
-        <button
-          onClick={() => api.testSound(value ?? undefined)}
-          className="rounded-lg bg-surface px-3 py-1 text-[12.5px] shadow-sm"
-        >
+          onChange={(next) => onChange(next === "" ? null : next)}
+        />
+        <Button size="xs" variant="outline" onClick={() => api.testSound(value ?? undefined)}>
           试听
-        </button>
+        </Button>
       </div>
     </Row>
   );

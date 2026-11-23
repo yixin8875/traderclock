@@ -1,104 +1,289 @@
 @import "tailwindcss";
+@import "tw-animate-css";
 
-/* 设计令牌：浅色为默认，[data-theme="dark"] 覆盖为深色。
-   颜色用语义名，页面里不再散落 #hex，切主题时只换这一层。 */
-@theme {
-  --color-ink: #18202b;
-  --color-on-ink: #ffffff;
-  --color-on-amber: #18202b;
-  --color-mute: #6b7684;
-  --color-line: #e4e8ee;
-  --color-soft: #f5f7fa;
-  --color-surface: #ffffff;
-  --color-surface-alt: #fbfcfd;
-  --color-hover: #edf0f4;
-  --color-selected: #fffaf2;
-  --color-amber: #f0a020;
-  --color-amber-ink: #a86400;
-  --color-amber-soft: #fff3df;
-  --color-amber-hover: #ffe9c7;
-  --color-asia: #d9ecf5;
-  --color-eu: #e1e4fa;
-  --color-us: #efe1f4;
-  --color-halt: #f7dcdc;
-  --color-halt-2: #fbeded;
-  --color-halt-ink: #d98b8b;
-  --color-success: #6aa784;
-  --color-success-soft: #e8f3ec;
-  --color-success-hover: #dcefe2;
-  --color-success-ink: #2f7a4d;
-  --color-danger-soft: #fdecec;
-  --color-danger-hover: #fbdcdc;
-  --color-danger-ink: #a33f3f;
-  --color-roll: #7b6bb5;
-  --color-roll-soft: #eef1fb;
-  --color-roll-ink: #4c5a9a;
-  --color-news: #e05757;
-  --color-news-soft: #fdecec;
-  --color-news-ink: #a33f3f;
-  --color-danger-solid: #a33f3f;
-  --color-weekend: #b05050;
+/* coss ui / shadcn 默认用 .dark；本应用历史上用 [data-theme="dark"]。
+   两个选择器都支持，主窗口、悬浮条和提醒浮窗共用同一套令牌。 */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *, .dark, .dark *));
+
+/* 令牌分两层：
+   1) 语义层（background / foreground / primary / muted …）—— coss 组件只认这一层；
+   2) 业务层（amber / asia / halt / hud …）—— 今日时间轴、日历热力图等专用色。
+   页面里尽量用语义名，切换主题只改这一层。 */
+:root {
+  --radius: 0.625rem;
+
+  --background: #ffffff;
+  --foreground: #18202b;
+  --card: #ffffff;
+  --card-foreground: #18202b;
+  --popover: #ffffff;
+  --popover-foreground: #18202b;
+  --primary: #f0a020;
+  --primary-foreground: #18202b;
+  --secondary: #f5f7fa;
+  --secondary-foreground: #18202b;
+  --muted: #f5f7fa;
+  --muted-foreground: #6b7684;
+  --accent: #edf0f4;
+  --accent-foreground: #18202b;
+  --destructive: #b23d3d;
+  --destructive-foreground: #a33f3f;
+  --border: #e4e8ee;
+  --input: #e4e8ee;
+  --ring: #f0a020;
+  --info: #3d7fb8;
+  --info-foreground: #2b5f8c;
+  --success: #6aa784;
+  --success-foreground: #2f7a4d;
+  --warning: #f0a020;
+  --warning-foreground: #a86400;
+  --chart-1: #f0a020;
+  --chart-2: #6aa784;
+  --chart-3: #7b6bb5;
+  --chart-4: #3d7fb8;
+  --chart-5: #e05757;
+  --code: #f5f7fa;
+  --code-foreground: #18202b;
+  --code-highlight: #edf0f4;
+  --sidebar: #f5f7fa;
+  --sidebar-foreground: #18202b;
+  --sidebar-primary: #18202b;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #edf0f4;
+  --sidebar-accent-foreground: #18202b;
+  --sidebar-border: #e4e8ee;
+  --sidebar-ring: #f0a020;
+
+  /* 业务色（浅色） */
+  --on-ink: #ffffff;
+  --on-amber: #18202b;
+  --surface-alt: #fbfcfd;
+  --selected: #fffaf2;
+  --amber-soft: #fff3df;
+  --amber-hover: #ffe9c7;
+  --asia: #d9ecf5;
+  --eu: #e1e4fa;
+  --us: #efe1f4;
+  --halt: #f7dcdc;
+  --halt-2: #fbeded;
+  --halt-ink: #d98b8b;
+  --success-soft: #e8f3ec;
+  --success-hover: #dcefe2;
+  --danger-solid: #a33f3f;
+  --danger-soft: #fdecec;
+  --danger-hover: #fbdcdc;
+  --roll: #7b6bb5;
+  --roll-soft: #eef1fb;
+  --roll-ink: #4c5a9a;
+  --news: #e05757;
+  --news-soft: #fdecec;
+  --news-ink: #a33f3f;
+  --weekend: #b05050;
+  --axis: #cfd6df;
+  --mark-muted: #b6bfca;
+  --label: #9aa4b0;
+  --label-strong: #3b4756;
+  --switch-off: #d3d9e1;
   /* 悬浮条始终深色，浮在桌面上，不随主题翻转 */
-  --color-hud: #18202b;
-  --color-hud-soft: #26313d;
-  --color-hud-ink: #f2f6fa;
-  --color-hud-mute: #9aa8b6;
-  --color-axis: #cfd6df;
-  --color-mark-muted: #b6bfca;
-  --color-label: #9aa4b0;
-  --color-label-strong: #3b4756;
-  --color-switch-off: #d3d9e1;
-  --font-ui: "Segoe UI Variable Text", "Segoe UI", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
+  --hud: #18202b;
+  --hud-soft: #26313d;
+  --hud-ink: #f2f6fa;
+  --hud-mute: #9aa8b6;
+
+  color-scheme: light;
+}
+
+[data-theme="dark"],
+.dark {
+  --background: #1b232c;
+  --foreground: #e6edf3;
+  --card: #1b232c;
+  --card-foreground: #e6edf3;
+  --popover: #202a35;
+  --popover-foreground: #e6edf3;
+  --primary: #f0a020;
+  --primary-foreground: #18202b;
+  --secondary: #232d38;
+  --secondary-foreground: #e6edf3;
+  --muted: #171e26;
+  --muted-foreground: #8f9eae;
+  --accent: #232d38;
+  --accent-foreground: #e6edf3;
+  --destructive: #b23d3d;
+  --destructive-foreground: #ff9b9b;
+  --border: #2b3541;
+  --input: #2b3541;
+  --ring: #ffb340;
+  --info: #5b9fd4;
+  --info-foreground: #8bc4ef;
+  --success: #5f9f7c;
+  --success-foreground: #8bd6a8;
+  --warning: #f0a020;
+  --warning-foreground: #ffc46b;
+  --chart-1: #f0a020;
+  --chart-2: #5f9f7c;
+  --chart-3: #9b8bdb;
+  --chart-4: #5b9fd4;
+  --chart-5: #ff7b7b;
+  --code: #151b22;
+  --code-foreground: #e6edf3;
+  --code-highlight: #232d38;
+  --sidebar: #171e26;
+  --sidebar-foreground: #e6edf3;
+  --sidebar-primary: #e6edf3;
+  --sidebar-primary-foreground: #151b22;
+  --sidebar-accent: #232d38;
+  --sidebar-accent-foreground: #e6edf3;
+  --sidebar-border: #2b3541;
+  --sidebar-ring: #ffb340;
+
+  /* 业务色（深色） */
+  --on-ink: #151b22;
+  --on-amber: #18202b;
+  --surface-alt: #151b22;
+  --selected: #2a2418;
+  --amber-soft: #3a2b12;
+  --amber-hover: #4a3618;
+  --asia: #1e3442;
+  --eu: #262a4a;
+  --us: #372842;
+  --halt: #3b2328;
+  --halt-2: #4a2b31;
+  --halt-ink: #b96565;
+  --success-soft: #1e3328;
+  --success-hover: #274633;
+  --danger-solid: #b23d3d;
+  --danger-soft: #3a2226;
+  --danger-hover: #4a2b31;
+  --roll: #9b8bdb;
+  --roll-soft: #252b4a;
+  --roll-ink: #b4bdff;
+  --news: #ff7b7b;
+  --news-soft: #3a2226;
+  --news-ink: #ff9b9b;
+  --weekend: #e88b8b;
+  --axis: #3a4653;
+  --mark-muted: #5c6876;
+  --label: #7f8b99;
+  --label-strong: #c2ccd8;
+  --switch-off: #39434f;
+
+  color-scheme: dark;
+}
+
+@theme inline {
+  /* 语义色 -> Tailwind 工具类（bg-background / text-muted-foreground …） */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-code: var(--code);
+  --color-code-foreground: var(--code-foreground);
+  --color-code-highlight: var(--code-highlight);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* 圆角：coss 组件按 --radius 派生 */
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+
+  /* 业务色 / 旧语义名：既有页面不必一次性改写，也会跟随主题 */
+  --color-ink: var(--foreground);
+  --color-on-ink: var(--on-ink);
+  --color-on-amber: var(--on-amber);
+  --color-mute: var(--muted-foreground);
+  --color-line: var(--border);
+  --color-soft: var(--muted);
+  --color-surface: var(--card);
+  --color-surface-alt: var(--surface-alt);
+  --color-hover: var(--accent);
+  --color-selected: var(--selected);
+  --color-amber: var(--primary);
+  --color-amber-ink: var(--warning-foreground);
+  --color-amber-soft: var(--amber-soft);
+  --color-amber-hover: var(--amber-hover);
+  --color-asia: var(--asia);
+  --color-eu: var(--eu);
+  --color-us: var(--us);
+  --color-halt: var(--halt);
+  --color-halt-2: var(--halt-2);
+  --color-halt-ink: var(--halt-ink);
+  --color-success-soft: var(--success-soft);
+  --color-success-hover: var(--success-hover);
+  --color-success-ink: var(--success-foreground);
+  --color-danger-solid: var(--danger-solid);
+  --color-danger-soft: var(--danger-soft);
+  --color-danger-hover: var(--danger-hover);
+  --color-danger-ink: var(--destructive-foreground);
+  --color-roll: var(--roll);
+  --color-roll-soft: var(--roll-soft);
+  --color-roll-ink: var(--roll-ink);
+  --color-news: var(--news);
+  --color-news-soft: var(--news-soft);
+  --color-news-ink: var(--news-ink);
+  --color-weekend: var(--weekend);
+  --color-axis: var(--axis);
+  --color-mark-muted: var(--mark-muted);
+  --color-label: var(--label);
+  --color-label-strong: var(--label-strong);
+  --color-switch-off: var(--switch-off);
+  --color-hud: var(--hud);
+  --color-hud-soft: var(--hud-soft);
+  --color-hud-ink: var(--hud-ink);
+  --color-hud-mute: var(--hud-mute);
+}
+
+@theme {
+  --font-sans: "Segoe UI Variable Text", "Segoe UI", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
+  --font-ui: var(--font-sans);
+  --font-heading: var(--font-sans);
+  --font-mono: "Cascadia Mono", "Consolas", ui-monospace, monospace;
   --font-num: "Bahnschrift", "DIN Alternate", "Segoe UI Variable Display", sans-serif;
 }
 
-[data-theme="dark"] {
-  --color-ink: #e6edf3;
-  --color-on-ink: #151b22;
-  --color-on-amber: #18202b;
-  --color-mute: #8f9eae;
-  --color-line: #2b3541;
-  --color-soft: #171e26;
-  --color-surface: #1b232c;
-  --color-surface-alt: #151b22;
-  --color-hover: #232d38;
-  --color-selected: #2a2418;
-  --color-amber-ink: #ffc46b;
-  --color-amber-soft: #3a2b12;
-  --color-amber-hover: #4a3618;
-  --color-asia: #1e3442;
-  --color-eu: #262a4a;
-  --color-us: #372842;
-  --color-halt: #3b2328;
-  --color-halt-2: #4a2b31;
-  --color-halt-ink: #b96565;
-  --color-success: #5f9f7c;
-  --color-success-soft: #1e3328;
-  --color-success-hover: #274633;
-  --color-success-ink: #8bd6a8;
-  --color-danger-soft: #3a2226;
-  --color-danger-hover: #4a2b31;
-  --color-danger-ink: #ff9b9b;
-  --color-danger-solid: #b23d3d;
-  --color-roll: #9b8bdb;
-  --color-roll-soft: #252b4a;
-  --color-roll-ink: #b4bdff;
-  --color-news: #ff7b7b;
-  --color-news-soft: #3a2226;
-  --color-news-ink: #ff9b9b;
-  --color-weekend: #e88b8b;
-  --color-axis: #3a4653;
-  --color-mark-muted: #5c6876;
-  --color-label: #7f8b99;
-  --color-label-strong: #c2ccd8;
-  --color-switch-off: #39434f;
-}
-
-:root {
-  color-scheme: light;
-}
-[data-theme="dark"] {
-  color-scheme: dark;
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-sans);
+  }
 }
 
 html,
@@ -109,8 +294,8 @@ body,
 body {
   margin: 0;
   font-family: var(--font-ui);
-  color: var(--color-ink);
-  background: var(--color-surface);
+  color: var(--foreground);
+  background: var(--background);
   -webkit-font-smoothing: antialiased;
   user-select: none;
 }
@@ -118,8 +303,9 @@ body {
   font-family: var(--font-num);
   font-variant-numeric: tabular-nums;
 }
-:focus-visible {
-  outline: 2px solid var(--color-amber);
+/* coss 组件自带 focus ring；只有页面里手写的控件才用统一描边 */
+:where(button, a, input, select, textarea, [tabindex]):focus-visible:not([data-slot]) {
+  outline: 2px solid var(--ring);
   outline-offset: 2px;
 }
 .halt-stripes {
@@ -153,7 +339,7 @@ body {
 [data-theme="dark"] input,
 [data-theme="dark"] select,
 [data-theme="dark"] textarea {
-  color: var(--color-ink);
+  color: var(--foreground);
 }
 [data-theme="dark"] input[type="date"],
 [data-theme="dark"] input[type="time"] {
@@ -180,10 +366,6 @@ body {
 [data-density="compact"] .nav-item {
   padding-top: 6px;
   padding-bottom: 6px;
-}
-[data-density="compact"] .settings-tab {
-  padding-top: 4px;
-  padding-bottom: 4px;
 }
 
 /* 悬浮条窗口本身透明，透明度由内容层的 opacity 控制 */

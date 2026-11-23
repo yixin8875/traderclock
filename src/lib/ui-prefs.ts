@@ -64,11 +64,14 @@ export function resolveTheme(theme: ThemePref): "light" | "dark" {
   return theme;
 }
 
-/** 把偏好写到 <html> 上；CSS 用 data-theme / data-density 切换整套 token。 */
+/** 把偏好写到 <html> 上；CSS 用 data-theme / data-density 切换整套 token。
+ *  coss ui 的 dark: 变体认 .dark 类，这里与 data-theme 一起维护，二者保持同步。 */
 export function applyUiPrefs(prefs: UiPrefs) {
   const root = document.documentElement;
-  root.dataset.theme = resolveTheme(prefs.theme);
+  const theme = resolveTheme(prefs.theme);
+  root.dataset.theme = theme;
   root.dataset.density = prefs.density;
+  root.classList.toggle("dark", theme === "dark");
 }
 
 export function saveUiPrefs(next: UiPrefs) {

@@ -1,5 +1,5 @@
 import type { TemplateId } from "../lib/api";
-import { Group, Row, Switch } from "../components/ui";
+import { Group, Row, Switch } from "../components/kit";
 import type { PageProps } from "../App";
 
 const META: Record<TemplateId, { name: string; hint: string; weekend?: boolean }> = {
@@ -14,16 +14,20 @@ export default function SymbolsPage({ cfg, save }: PageProps) {
 
   return (
     <>
-      <p className="mb-4 text-[12.5px] text-mute">只在所选 CME 品种的交易时段内提醒，多个品种取并集。</p>
+      <p className="mb-4 text-[12.5px] text-muted-foreground">只在所选 CME 品种的交易时段内提醒，多个品种取并集。</p>
       <Group title="CME">
         {cfg.templates.map((t) => (
           <Row key={t.id} label={META[t.id].name} hint={META[t.id].hint}>
             <span className="flex items-center gap-4">
               {META[t.id].weekend && t.enabled && (
-                <label className="flex items-center gap-2 text-xs text-mute">
+                <span className="flex items-center gap-2 text-xs text-muted-foreground">
                   周末提醒
-                  <Switch checked={t.weekend} onChange={(v) => update(t.id, { weekend: v })} label={`${META[t.id].name} 周末提醒`} />
-                </label>
+                  <Switch
+                    checked={t.weekend}
+                    onChange={(v) => update(t.id, { weekend: v })}
+                    label={`${META[t.id].name} 周末提醒`}
+                  />
+                </span>
               )}
               <Switch checked={t.enabled} onChange={(v) => update(t.id, { enabled: v })} label={META[t.id].name} />
             </span>

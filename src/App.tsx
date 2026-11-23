@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { listen } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
+import { Calendar, Clock3, LineChart, Settings as SettingsIcon } from "lucide-react";
 import { api, type Config } from "./lib/api";
 import TodayPage from "./pages/Today";
 import ContractsPage from "./pages/Contracts";
@@ -8,12 +9,15 @@ import CalendarPage from "./pages/Calendar";
 import SettingsPage, { type SettingsTabId } from "./pages/Settings";
 import { applyUiPrefs, loadUiPrefs, type UiPrefs } from "./lib/ui-prefs";
 import { autoCheckEnabled, checkForUpdate, isTauriRuntime } from "./lib/updater";
+import { Button } from "./components/ui/button";
+import { Alert, AlertDescription } from "./components/ui/alert";
+import { cn } from "./lib/utils";
 import type { Update } from "@tauri-apps/plugin-updater";
 
 const PAGES = [
-  { id: "today", label: "今日" },
-  { id: "calendar", label: "日历" },
-  { id: "contracts", label: "合约" },
+  { id: "today", label: "今日", Icon: Clock3 },
+  { id: "calendar", label: "日历", Icon: Calendar },
+  { id: "contracts", label: "合约", Icon: LineChart },
 ] as const;
 type PageId = (typeof PAGES)[number]["id"];
 
@@ -144,80 +148,80 @@ export default function App() {
 
   return (
     <div className="grid h-full grid-cols-[176px_1fr]">
-      <nav className="flex flex-col gap-0.5 bg-soft px-3 pb-4 pt-4" aria-label="主导航">
-        <div className="mb-5 flex items-center gap-2 px-2 font-semibold">
+      <aside className="flex flex-col gap-0.5 border-r border-border bg-sidebar px-3 pb-4 pt-4">
+        <div className="mb-5 flex items-center gap-2 px-2 font-semibold text-sidebar-foreground">
           <Logo /> TradeClock
         </div>
-        {PAGES.map((p) => {
-          const active = !settingsOpen && page === p.id;
-          return (
-            <button
-              key={p.id}
-              type="button"
-              onClick={() => openPage(p.id)}
-              aria-current={active ? "page" : undefined}
-              className={`nav-item rounded-lg px-2 py-2 text-left text-sm ${
-                active ? "bg-surface font-semibold text-ink shadow-[0_1px_2px_rgba(20,30,45,.08)]" : "text-mute hover:text-ink"
-              }`}
-            >
-              {p.label}
-            </button>
-          );
-        })}
+        <nav className="flex flex-col gap-0.5" aria-label="主导航">
+          {PAGES.map((p) => {
+            const active = !settingsOpen && page === p.id;
+            return (
+              <Button
+                key={p.id}
+                aria-current={active ? "page" : undefined}
+                className={cn(
+                  "nav-item h-auto justify-start gap-2.5 rounded-lg border-transparent px-2 py-2 text-sm font-normal text-muted-foreground hover:text-foreground",
+                  active &&
+                    "bg-card font-semibold text-foreground shadow-xs/5 hover:bg-card dark:bg-accent dark:hover:bg-accent",
+                )}
+                variant="ghost"
+                onClick={() => openPage(p.id)}
+              >
+                <p.Icon className="size-4 opacity-70" />
+                {p.label}
+              </Button>
+            );
+          })}
+        </nav>
 
         <div className="mt-auto space-y-2">
-          <p className="px-2 text-[11.5px] leading-5 text-mute">日历数据 {calVer || "--"}</p>
-          <button
-            type="button"
+          <p className="px-2 text-[11.5px] leading-5 text-muted-foreground">日历数据 {calVer || "--"}</p>
+          <Button
+            aria-current={settingsOpen ? "page" : undefined}
+            className={cn(
+              "nav-item h-auto w-full justify-start gap-2.5 rounded-lg border-transparent px-2 py-2 text-sm font-normal text-muted-foreground hover:text-foreground",
+              settingsOpen &&
+                "bg-card font-semibold text-foreground shadow-xs/5 hover:bg-card dark:bg-accent dark:hover:bg-accent",
+            )}
+            variant="ghost"
             onClick={() => {
               setSettingsTab(undefined);
               setSettingsOpen(true);
             }}
-            aria-current={settingsOpen ? "page" : undefined}
-            className={`nav-item flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-sm ${
-              settingsOpen ? "bg-surface font-semibold text-ink shadow-[0_1px_2px_rgba(20,30,45,.08)]" : "text-mute hover:text-ink"
-            }`}
           >
-            <GearIcon />
+            <SettingsIcon className="size-4 opacity-70" />
             设置
-          </button>
+          </Button>
         </div>
-      </nav>
+      </aside>
 
       <main className="overflow-auto px-8 py-5">
         {pendingUpdate && (
-          <div
-            role="status"
-            className="mb-4 flex items-center justify-between gap-3 rounded-lg border border-line bg-soft px-3 py-2 text-[12.5px]"
-          >
-            <span>
-              发现新版本 <b className="num font-medium">v{pendingUpdate.version}</b>，当前 v{pendingUpdate.currentVersion}
-            </span>
+          <Alert className="mb-4 flex items-center justify-between gap-3 py-2" role="status">
+            <AlertDescription className="flex flex-row flex-wrap items-center gap-x-1 text-[12.5px] text-foreground">
+              发现新版本 <b className="num font-medium">v{pendingUpdate.version}</b>
+              <span className="text-muted-foreground">当前 v{pendingUpdate.currentVersion}</span>
+            </AlertDescription>
             <span className="flex flex-none items-center gap-1">
-              <button
-                type="button"
+              <Button
+                size="xs"
                 onClick={() => {
                   setSettingsTab("about");
                   setSettingsOpen(true);
                 }}
-                className="rounded-md bg-amber px-2.5 py-1 text-[12px] font-medium text-on-amber hover:opacity-90"
               >
                 查看更新
-              </button>
-              <button
-                type="button"
-                onClick={() => setPendingUpdate(null)}
-                className="rounded-md px-2 py-1 text-[12px] text-mute hover:text-ink"
-              >
+              </Button>
+              <Button size="xs" variant="ghost" onClick={() => setPendingUpdate(null)}>
                 稍后
-              </button>
+              </Button>
             </span>
-          </div>
+          </Alert>
         )}
         {error && (
-          <p role="alert" className="mb-4 rounded-lg bg-danger-soft px-3 py-2 text-[12.5px] text-danger-ink">
-            {error}
-          </p>
+          <Alert className="mb-4 py-2" variant="error">
+            <AlertDescription className="text-[12.5px] text-destructive-foreground">{error}</AlertDescription>
+          </Alert>
         )}
         {!cfg ? null : settingsOpen ? (
           <SettingsPage key={settingsTab ?? "default"} cfg={cfg} save={save} initialTab={settingsTab} />
@@ -238,15 +242,6 @@ function Logo() {
     <svg width="16" height="16" viewBox="0 0 20 20" aria-hidden="true">
       <circle cx="10" cy="10" r="8" fill="none" stroke="#F0A020" strokeWidth="2.5" />
       <path d="M10 5v5l3 2" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function GearIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
-      <circle cx="12" cy="12" r="3.2" />
-      <path d="M12 2.8v3M12 18.2v3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M2.8 12h3M18.2 12h3M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1" strokeLinecap="round" />
     </svg>
   );
 }

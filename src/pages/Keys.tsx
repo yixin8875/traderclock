@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { api, type KeyPoint } from "../lib/api";
 import { hmBJ } from "../lib/format";
-import { Group, Row, Switch } from "../components/ui";
+import { Group, Row, SelectField, Switch } from "../components/kit";
 import type { PageProps } from "../App";
 
 const CITY: Record<string, string> = {
@@ -27,7 +27,7 @@ export default function KeysPage({ cfg, save }: PageProps) {
 
   return (
     <>
-      <p className="mb-4 text-[12.5px] text-mute">按当地时间定义，夏令时自动换算。右侧是下一次的北京时间。</p>
+      <p className="mb-4 text-[12.5px] text-muted-foreground">按当地时间定义，夏令时自动换算。右侧是下一次的北京时间。</p>
       {groups.map((g) => (
         <Group key={g} title={g}>
           {keys
@@ -38,16 +38,13 @@ export default function KeysPage({ cfg, save }: PageProps) {
                 <Row key={k.id} label={k.name} hint={`${CITY[k.tz] ?? k.tz} ${k.time.slice(0, 5)} → 北京 ${hmBJ(k.next)}`}>
                   <span className="flex items-center gap-3">
                     {s.enabled && (
-                      <select
-                        aria-label={`${k.name} 提前提醒`}
+                      <SelectField
+                        className="min-w-28"
+                        label={`${k.name} 提前提醒`}
+                        options={LEADS.map((m) => ({ value: m, label: m === 0 ? "准点" : `提前 ${m} 分钟` }))}
                         value={s.lead_minutes}
-                        onChange={(e) => update(k.id, { lead_minutes: Number(e.target.value) })}
-                        className="rounded-md border border-line bg-surface px-2 py-0.5 text-[12px]"
-                      >
-                        {LEADS.map((m) => (
-                          <option key={m} value={m}>{m === 0 ? "准点" : `提前 ${m} 分钟`}</option>
-                        ))}
-                      </select>
+                        onChange={(lead_minutes) => update(k.id, { lead_minutes })}
+                      />
                     )}
                     <Switch checked={s.enabled} onChange={(v) => update(k.id, { enabled: v })} label={k.name} />
                   </span>

@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { api, type Diagnostics } from "../lib/api";
 import { loadUiPrefs, normalizeUiPrefs, saveUiPrefs } from "../lib/ui-prefs";
-import { Group, Row } from "../components/ui";
+import { Group, Row } from "../components/kit";
+import { Alert, AlertDescription } from "../components/ui/alert";
+import { Button } from "../components/ui/button";
 import type { PageProps } from "../App";
 
 function downloadJson(name: string, text: string) {
@@ -21,11 +23,6 @@ function stampName() {
   const p = (n: number) => String(n).padStart(2, "0");
   return `TradeClock-backup-${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}.json`;
 }
-
-const BTN =
-  "rounded-lg border border-line bg-surface px-2.5 py-1 text-[12px] text-ink hover:bg-soft disabled:opacity-50";
-const PRIMARY =
-  "rounded-lg bg-amber px-2.5 py-1 text-[12px] font-medium text-on-amber hover:opacity-90 disabled:opacity-50";
 
 export default function DataPage({ save }: PageProps) {
   const [diag, setDiag] = useState<Diagnostics | null>(null);
@@ -144,19 +141,19 @@ export default function DataPage({ save }: PageProps) {
     <>
       <Group title="备份与恢复">
         <Row label="导出配置" hint="提醒设置、自定义日历、窗口和界面偏好">
-          <button type="button" onClick={exportBackup} disabled={busy} className={PRIMARY}>
+          <Button disabled={busy} size="xs" onClick={exportBackup}>
             导出 JSON
-          </button>
+          </Button>
         </Row>
         <Row label="导入配置" hint="会覆盖当前提醒设置和自定义日历">
-          <button type="button" onClick={() => fileRef.current?.click()} disabled={busy} className={BTN}>
+          <Button disabled={busy} size="xs" variant="outline" onClick={() => fileRef.current?.click()}>
             选择文件
-          </button>
+          </Button>
           <input
             ref={fileRef}
-            type="file"
             accept=".json,application/json"
             className="hidden"
+            type="file"
             onChange={(e) => {
               const file = e.target.files?.[0];
               e.target.value = "";
@@ -165,60 +162,64 @@ export default function DataPage({ save }: PageProps) {
           />
         </Row>
         <Row label="恢复默认" hint="只重置提醒设置，保留日历和界面偏好">
-          <button type="button" onClick={reset} disabled={busy} className={BTN}>
+          <Button disabled={busy} size="xs" variant="outline" onClick={reset}>
             恢复默认
-          </button>
+          </Button>
         </Row>
       </Group>
 
       <Group title="运行状态">
         <Row label="程序版本">
-          <span className="num text-[12px] text-mute">v{diag?.version ?? "--"}</span>
+          <span className="num text-[12px] text-muted-foreground">v{diag?.version ?? "--"}</span>
         </Row>
         <Row label="数据目录">
-          <span className="max-w-[360px] truncate text-[11px] text-mute" title={diag?.data_dir}>
+          <span className="max-w-[360px] truncate text-[11px] text-muted-foreground" title={diag?.data_dir}>
             {diag?.data_dir || "--"}
           </span>
         </Row>
         <Row label="休市日历">
-          <span className="text-[12px] text-mute">{diag?.calendar_version || "内置规则"}</span>
+          <span className="text-[12px] text-muted-foreground">{diag?.calendar_version || "内置规则"}</span>
         </Row>
         <Row label="财经数据">
-          <span className="num text-[12px] text-mute">
+          <span className="num text-[12px] text-muted-foreground">
             {updated} · {diag?.news_count ?? 0} 条
           </span>
         </Row>
         <Row label="财经状态">
-          <span className={diag?.news_error ? "text-[12px] text-danger-ink" : "text-[12px] text-success-ink"}>
+          <span
+            className={
+              diag?.news_error ? "text-[12px] text-destructive-foreground" : "text-[12px] text-success-foreground"
+            }
+          >
             {diag?.news_error ?? "正常"}
           </span>
         </Row>
       </Group>
 
       <div className="mb-4 flex flex-wrap gap-2">
-        <button type="button" onClick={refreshNews} disabled={busy} className={BTN}>
+        <Button disabled={busy} size="xs" variant="outline" onClick={refreshNews}>
           {busy ? "处理中…" : "立即刷新财经数据"}
-        </button>
-        <button type="button" onClick={() => void api.openDataDir().catch((e) => setError(String(e)))} className={BTN}>
+        </Button>
+        <Button size="xs" variant="outline" onClick={() => void api.openDataDir().catch((e) => setError(String(e)))}>
           打开数据目录
-        </button>
-        <button type="button" onClick={copyDiagnostics} disabled={!diag} className={BTN}>
+        </Button>
+        <Button disabled={!diag} size="xs" variant="outline" onClick={copyDiagnostics}>
           复制诊断信息
-        </button>
+        </Button>
       </div>
 
       {error && (
-        <p role="alert" className="mb-3 rounded-lg bg-danger-soft px-3 py-2 text-[12.5px] text-danger-ink">
-          {error}
-        </p>
+        <Alert className="mb-3 py-2" variant="error">
+          <AlertDescription className="text-[12.5px] text-destructive-foreground">{error}</AlertDescription>
+        </Alert>
       )}
       {msg && (
-        <p role="status" className="mb-3 rounded-lg bg-success-soft px-3 py-2 text-[12.5px] text-success-ink">
-          {msg}
-        </p>
+        <Alert className="mb-3 py-2" variant="success">
+          <AlertDescription className="text-[12.5px] text-success-foreground">{msg}</AlertDescription>
+        </Alert>
       )}
 
-      <p className="text-[12.5px] leading-5 text-mute">
+      <p className="text-[12.5px] leading-5 text-muted-foreground">
         备份文件是普通 JSON，可以自己保存或放到另一台电脑导入。自定义提示音文件不会写进 JSON；换机器后如果音频不存在，会自动退回系统提示音。
       </p>
     </>

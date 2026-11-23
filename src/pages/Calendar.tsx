@@ -10,6 +10,9 @@ import {
   type NewsEvent,
 } from "../lib/api";
 import { hmIn } from "../lib/format";
+import { ChoiceGroup, SelectField } from "../components/kit";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
 
 const GROUP: CalGroup = "cme";
 const WEEKDAYS = ["一", "二", "三", "四", "五", "六", "日"];
@@ -28,21 +31,6 @@ const KIND_LABEL: Record<CalKind, string> = {
   normal: "照常交易",
 };
 
-// 覆盖操作默认是中性按钮，只有当天已应用的那一档才着色
-const ACTION_STYLE = {
-  closed:
-    "rounded-lg border border-line bg-surface px-2.5 py-1 text-[12px] text-mute hover:bg-soft hover:text-ink disabled:opacity-50",
-  early:
-    "rounded-lg border border-line bg-surface px-2.5 py-1 text-[12px] text-mute hover:bg-soft hover:text-ink disabled:opacity-50",
-  normal:
-    "rounded-lg border border-line bg-surface px-2.5 py-1 text-[12px] text-mute hover:bg-soft hover:text-ink disabled:opacity-50",
-} as const;
-
-const ACTION_ON = {
-  closed: "border-transparent bg-danger-soft text-danger-ink",
-  early: "border-transparent bg-amber-soft text-amber-ink",
-  normal: "border-transparent bg-success-soft text-success-ink",
-} as const;
 
 type Filters = {
   holidays: boolean;
@@ -237,8 +225,8 @@ function FilterChip(props: {
       onClick={props.onClick}
       className={`inline-flex h-6 items-center gap-1 rounded-full border px-2 transition-colors ${
         props.active
-          ? "border-line bg-surface text-ink shadow-sm"
-          : "border-transparent text-mute opacity-60 hover:opacity-100"
+          ? "border-border bg-card text-foreground shadow-sm"
+          : "border-transparent text-muted-foregroundd-foreground opacity-60 hover:opacity-100"
       }`}
     >
       {props.children}
@@ -628,61 +616,36 @@ export default function CalendarPage() {
           <h1 className="text-[22px] font-semibold leading-8 tracking-tight">
             <span className="num">{view.year}</span> 年 <span className="num">{view.month}</span> 月
           </h1>
-          <p className="mt-0.5 text-[12px] text-mute">
+          <p className="mt-0.5 text-[12px] text-muted-foreground">
             CME · {summary} · 数据 {data?.version || "规则"} · 时间按{tzLabel}
           </p>
         </div>
         <div className="flex flex-none flex-wrap items-center justify-end gap-1.5">
-          <div className="flex rounded-lg border border-line bg-surface p-0.5" role="group" aria-label="日历视图">
-            {([
-              ["month", "月"],
-              ["agenda", "议程"],
-            ] as const).map(([id, label]) => (
-              <button
-                key={id}
-                type="button"
-                aria-pressed={layout === id}
-                onClick={() => setLayout(id)}
-                className={`rounded-md px-2 py-0.5 text-[11.5px] ${
-                  layout === id ? "bg-soft font-semibold text-ink shadow-sm" : "text-mute hover:text-ink"
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-          <select
+          <ChoiceGroup
+            label="日历视图"
+            options={[
+              { value: "month", label: "月" },
+              { value: "agenda", label: "议程" },
+            ]}
+            value={layout}
+            onChange={setLayout}
+          />
+          <SelectField
+            className="h-8"
+            label="时间显示时区"
+            options={TIMEZONES.map((t) => ({ value: t.id, label: t.label }))}
             value={tz}
-            onChange={(e) => setTz(e.target.value as TzKey)}
-            aria-label="时间显示时区"
-            className="h-8 rounded-lg border border-line bg-surface px-2 text-[12px] text-mute"
-          >
-            {TIMEZONES.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.label}
-              </option>
-            ))}
-          </select>
-          <button
-            onClick={() => goMonth(-1)}
-            aria-label="上个月"
-            className="flex h-8 w-8 items-center justify-center rounded-lg border border-line bg-surface text-mute hover:bg-soft hover:text-ink"
-          >
+            onChange={setTz}
+          />
+          <Button aria-label="上个月" size="icon" variant="outline" onClick={() => goMonth(-1)}>
             <Chevron dir="left" />
-          </button>
-          <button
-            onClick={goToday}
-            className="h-8 rounded-lg border border-line bg-surface px-2.5 text-[12px] text-mute hover:bg-soft hover:text-ink"
-          >
+          </Button>
+          <Button size="sm" variant="outline" onClick={goToday}>
             今天
-          </button>
-          <button
-            onClick={() => goMonth(1)}
-            aria-label="下个月"
-            className="flex h-8 w-8 items-center justify-center rounded-lg border border-line bg-surface text-mute hover:bg-soft hover:text-ink"
-          >
+          </Button>
+          <Button aria-label="下个月" size="icon" variant="outline" onClick={() => goMonth(1)}>
             <Chevron dir="right" />
-          </button>
+          </Button>
         </div>
       </header>
 
@@ -692,7 +655,7 @@ export default function CalendarPage() {
         </p>
       )}
 
-      <div className="mb-1.5 flex flex-wrap items-center gap-1.5 text-[11px] text-mute">
+      <div className="mb-1.5 flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground">
         <FilterChip active={filters.holidays} onClick={() => toggleFilter("holidays")} label="休市">
           <i className="h-2 w-2 rounded-[2px] bg-halt-ink" />
         </FilterChip>
@@ -707,36 +670,33 @@ export default function CalendarPage() {
         </FilterChip>
         <span className="ml-auto flex items-center gap-1.5">
           {exportMsg && <span className="text-success-ink">{exportMsg}</span>}
-          <select
+          <SelectField
+            className="h-6 min-w-24 text-[11px]"
+            label="ICS 导出范围"
+            options={[
+              { value: "month", label: "本月" },
+              { value: "3m", label: "未来 3 个月" },
+            ]}
+            size="sm"
             value={exportRange}
-            onChange={(e) => setExportRange(e.target.value as ExportRange)}
-            aria-label="ICS 导出范围"
-            className="h-6 rounded-md border border-line bg-surface px-1.5 text-[11px] text-mute"
-          >
-            <option value="month">本月</option>
-            <option value="3m">未来 3 个月</option>
-          </select>
-          <button
-            type="button"
-            onClick={() => void exportIcs()}
-            disabled={exporting}
-            className="h-6 rounded-md border border-line bg-surface px-2 text-[11px] text-mute hover:bg-soft hover:text-ink disabled:opacity-50"
-          >
+            onChange={setExportRange}
+          />
+          <Button disabled={exporting} size="xs" variant="outline" onClick={() => void exportIcs()}>
             {exporting ? "导出中…" : "导出 .ics"}
-          </button>
+          </Button>
         </span>
       </div>
 
       {layout === "month" ? (
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-line bg-surface shadow-[0_1px_2px_rgba(20,30,45,.04)]">
-        <div className="grid grid-cols-7 border-b border-line bg-soft/60 text-center text-[11px] font-medium text-mute">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-border bg-card shadow-[0_1px_2px_rgba(20,30,45,.04)]">
+        <div className="grid grid-cols-7 border-b border-border bg-muted/60 text-center text-[11px] font-medium text-muted-foreground">
           {WEEKDAYS.map((w, i) => (
             <span key={w} className={`py-1.5 ${i >= 5 ? "text-weekend" : ""}`}>
               {w}
             </span>
           ))}
         </div>
-        <div className="grid min-h-0 flex-1 grid-cols-7 grid-rows-6 gap-px bg-line/70 p-px">
+        <div className="grid min-h-0 flex-1 grid-cols-7 grid-rows-6 gap-px bg-border/70 p-px">
           {cells.map((cell) => {
             const state = stateFor(cell.key);
             const isToday = cell.key === today.key;
@@ -764,8 +724,8 @@ export default function CalendarPage() {
                 aria-pressed={isSelected}
                 aria-label={`${cell.key} ${status}${eventsTitle ? ` ${eventsTitle}` : ""}`}
                 className={`relative flex min-h-0 flex-col items-stretch px-1 pb-1 pt-1 text-left transition-colors ${
-                  cell.inMonth ? "bg-surface" : "bg-surface-alt text-mute"
-                } ${isSelected ? "z-10 bg-selected ring-1 ring-inset ring-amber/70" : "hover:bg-soft"}`}
+                  cell.inMonth ? "bg-card" : "bg-surface-alt text-muted-foreground"
+                } ${isSelected ? "z-10 bg-selected ring-1 ring-inset ring-amber/70" : "hover:bg-muted"}`}
               >
                 <span className="flex items-center justify-between">
                   <span
@@ -775,7 +735,7 @@ export default function CalendarPage() {
                   >
                     {cell.day}
                   </span>
-                  {state.override && <span className="h-1.5 w-1.5 flex-none rounded-full bg-ink/35" title="我的覆盖" />}
+                  {state.override && <span className="h-1.5 w-1.5 flex-none rounded-full bg-foreground/35" title="我的覆盖" />}
                 </span>
                 {cell.inMonth && (showState || dayRolls.length > 0 || dayNews.length > 0) && (
                   <span className="mt-auto flex min-w-0 items-center gap-1">
@@ -798,10 +758,10 @@ export default function CalendarPage() {
                     )}
                     {dayNews.length > 0 && (
                       <span
-                        className={`flex items-center gap-0.5 ${highNews ? "text-news-ink" : "text-mute"}`}
+                        className={`flex items-center gap-0.5 ${highNews ? "text-news-ink" : "text-muted-foreground"}`}
                         title={dayNews.map((e) => `${clockInZone(e.at, tz, cell.key)} ${e.country} ${e.title}`).join("\n")}
                       >
-                        <i className={`h-1.5 w-1.5 flex-none rounded-full ${highNews ? "bg-news" : "bg-mute/60"}`} />
+                        <i className={`h-1.5 w-1.5 flex-none rounded-full ${highNews ? "bg-news" : "bg-muted-foreground/60"}`} />
                         <span className="num text-[10px] leading-none">{dayNews.length}</span>
                       </span>
                     )}
@@ -813,13 +773,13 @@ export default function CalendarPage() {
         </div>
       </div>
       ) : (
-        <div className="min-h-0 flex-1 overflow-auto rounded-xl border border-line bg-surface">
+        <div className="min-h-0 flex-1 overflow-auto rounded-xl border border-border bg-card">
           {agendaWeeks.map((week) => {
             const start = parseKey(week.start);
             const end = parseKey(week.end);
             return (
               <div key={week.start}>
-                <div className="sticky top-0 z-10 flex items-center justify-between border-b border-line bg-soft/95 px-3 py-1.5 text-[11px] font-medium text-mute backdrop-blur">
+                <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-muted/95 px-3 py-1.5 text-[11px] font-medium text-muted-foreground backdrop-blur">
                   <span className="num">
                     {start.month}/{start.day} – {end.month}/{end.day}
                   </span>
@@ -844,8 +804,8 @@ export default function CalendarPage() {
                       type="button"
                       onClick={() => selectCell(day.key)}
                       aria-pressed={isSelected}
-                      className={`flex w-full items-start gap-2 border-b border-line/70 px-3 py-2 text-left last:border-b-0 ${
-                        isSelected ? "bg-selected" : "hover:bg-soft"
+                      className={`flex w-full items-start gap-2 border-b border-border/70 px-3 py-2 text-left last:border-b-0 ${
+                        isSelected ? "bg-selected" : "hover:bg-muted"
                       }`}
                     >
                       <span
@@ -855,7 +815,7 @@ export default function CalendarPage() {
                       >
                         {day.day}
                       </span>
-                      <span className="w-7 shrink-0 pt-1 text-[11px] text-mute">{weekdayLabel(day.key)}</span>
+                      <span className="w-7 shrink-0 pt-1 text-[11px] text-muted-foreground">{weekdayLabel(day.key)}</span>
                       <span className="min-w-0 flex-1 pt-0.5">
                         <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
                           {filters.holidays && state.kind && (
@@ -889,7 +849,7 @@ export default function CalendarPage() {
                           {dayNews.length > 0 && (
                             <span
                               className={`inline-flex items-center gap-1 text-[11px] ${
-                                dayNews.some((e) => e.impact === "high") ? "text-danger-ink" : "text-mute"
+                                dayNews.some((e) => e.impact === "high") ? "text-danger-ink" : "text-muted-foreground"
                               }`}
                             >
                               <i className="h-1.5 w-1.5 rounded-full bg-news" />
@@ -898,7 +858,7 @@ export default function CalendarPage() {
                           )}
                         </span>
                         {detail && (
-                          <span className="mt-0.5 block truncate text-[11px] text-mute" title={detail}>
+                          <span className="mt-0.5 block truncate text-[11px] text-muted-foreground" title={detail}>
                             {detail}
                           </span>
                         )}
@@ -912,14 +872,14 @@ export default function CalendarPage() {
         </div>
       )}
 
-      <section className="mt-3 rounded-xl border border-line bg-soft px-4 py-3">
+      <section className="mt-3 rounded-xl border border-border bg-muted px-4 py-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="min-w-0">
             <div className="flex flex-wrap items-baseline gap-2">
               <span className="num text-[14px] font-semibold">
                 {selectedParts.month} 月 {selectedParts.day} 日
               </span>
-              <span className="text-[12px] text-mute">{weekdayLabel(selected)}</span>
+              <span className="text-[12px] text-muted-foreground">{weekdayLabel(selected)}</span>
               {selected === today.key && (
                 <span className="rounded bg-amber-soft px-1.5 text-[11px] leading-4 text-amber-ink">今天</span>
               )}
@@ -934,49 +894,54 @@ export default function CalendarPage() {
                 </span>
               )}
             </div>
-            <p className="mt-0.5 truncate text-[12px] text-mute" title={statusText}>
+            <p className="mt-0.5 truncate text-[12px] text-muted-foreground" title={statusText}>
               {statusText}
             </p>
           </div>
           <div className="flex flex-wrap items-center justify-end gap-1.5">
-            <button
-              onClick={() => apply("closed")}
+            <Button
               disabled={saving}
-              className={`${ACTION_STYLE.closed} ${selectedOverride?.kind === "closed" ? ACTION_ON.closed : ""}`}
+              size="xs"
+              variant={selectedOverride?.kind === "closed" ? "default" : "outline"}
+              onClick={() => apply("closed")}
             >
               全天休市
-            </button>
-            <button
-              onClick={openEarly}
+            </Button>
+            <Button
               disabled={saving}
-              className={`${ACTION_STYLE.early} ${selectedOverride?.kind === "early_close" ? ACTION_ON.early : ""}`}
+              size="xs"
+              variant={selectedOverride?.kind === "early_close" ? "default" : "outline"}
+              onClick={openEarly}
             >
               提前收盘
-            </button>
-            <button
-              onClick={() => apply("normal")}
+            </Button>
+            <Button
               disabled={saving}
-              className={`${ACTION_STYLE.normal} ${selectedOverride?.kind === "normal" ? ACTION_ON.normal : ""}`}
+              size="xs"
+              variant={selectedOverride?.kind === "normal" ? "default" : "outline"}
+              onClick={() => apply("normal")}
             >
               照常交易
-            </button>
+            </Button>
             {selectedOverride && (
-              <button
-                onClick={remove}
+              <Button
+                className="h-auto p-1 text-[11.5px] text-muted-foregroundd-foreground"
                 disabled={saving}
-                className="px-1 text-[11.5px] text-mute hover:text-danger-ink disabled:opacity-50"
+                size="xs"
+                variant="link"
+                onClick={remove}
               >
                 清除
-              </button>
+              </Button>
             )}
           </div>
         </div>
 
         {(selectedRolls.length > 0 || selectedNews.length > 0) && (
-          <ul className="mt-2 max-h-[84px] space-y-1 overflow-auto border-t border-line pt-2 text-[12px]">
+          <ul className="mt-2 max-h-[84px] space-y-1 overflow-auto border-t border-border pt-2 text-[12px]">
             {selectedRolls.map((e) => (
               <li key={`${e.kind}-${e.code}-${e.date}`} className="flex items-center gap-2">
-                <span className="w-9 shrink-0 text-[11px] text-mute">{e.kind === "roll" ? "换月" : "到期"}</span>
+                <span className="w-9 shrink-0 text-[11px] text-muted-foreground">{e.kind === "roll" ? "换月" : "到期"}</span>
                 <span className="rounded bg-roll-soft px-1.5 py-px text-roll-ink" title={`${e.label} ${e.code}`}>
                   {e.label} · {e.code}
                 </span>
@@ -984,10 +949,10 @@ export default function CalendarPage() {
             ))}
             {selectedNews.map((e, i) => (
               <li key={`${e.at}-${i}`} className="flex items-start gap-2">
-                <span className="num w-9 shrink-0 pt-px text-[11px] text-mute">
+                <span className="num w-9 shrink-0 pt-px text-[11px] text-muted-foreground">
                   {clockInZone(e.at, tz, selected)}
                 </span>
-                <span className={e.impact === "high" ? "font-medium text-danger-ink" : "text-mute"}>
+                <span className={e.impact === "high" ? "font-medium text-danger-ink" : "text-muted-foreground"}>
                   {e.country} {e.title}
                 </span>
                 {e.impact === "high" && (
@@ -999,25 +964,27 @@ export default function CalendarPage() {
         )}
 
         {earlyOpen && (
-          <div className="mt-2 flex flex-wrap items-center gap-2 border-t border-line pt-2 text-[12px]">
-            <span className="text-mute">芝加哥时间</span>
-            <input
+          <div className="mt-2 flex flex-wrap items-center gap-2 border-t border-border pt-2 text-[12px]">
+            <span className="text-muted-foreground">芝加哥时间</span>
+            <Input
+              aria-label="提前收盘时间"
+              className="num w-max"
+              size="sm"
               type="time"
               value={time}
               onChange={(e) => setTime(e.target.value)}
-              aria-label="提前收盘时间"
-              className="num rounded-md border border-line bg-surface px-2 py-1 text-sm"
             />
-            <button
-              onClick={() => apply("early_close")}
-              disabled={saving}
-              className="rounded-lg bg-amber px-2.5 py-1 text-[12px] font-medium text-on-amber disabled:opacity-50"
-            >
+            <Button disabled={saving} size="xs" onClick={() => apply("early_close")}>
               保存
-            </button>
-            <button onClick={() => setEarlyOpen(false)} className="text-[11.5px] text-mute hover:text-ink">
+            </Button>
+            <Button
+              className="h-auto p-0 text-[11.5px] text-muted-foregroundd-foreground"
+              size="xs"
+              variant="link"
+              onClick={() => setEarlyOpen(false)}
+            >
               取消
-            </button>
+            </Button>
           </div>
         )}
       </section>
@@ -1037,14 +1004,14 @@ export default function CalendarPage() {
         return (
           <div
             role="tooltip"
-            className="pointer-events-none fixed z-50 rounded-xl border border-line bg-surface p-2.5 text-[11.5px] shadow-xl"
+            className="pointer-events-none fixed z-50 rounded-xl border border-border bg-card p-2.5 text-[11.5px] shadow-xl"
             style={{ left, top, width: w }}
           >
             <div className="mb-1 flex items-baseline justify-between gap-2">
               <b className="num text-[12.5px]">
                 {p.month} 月 {p.day} 日
               </b>
-              <span className="text-[11px] text-mute">{weekdayLabel(hover.key)}</span>
+              <span className="text-[11px] text-muted-foreground">{weekdayLabel(hover.key)}</span>
             </div>
             <p
               className={`text-[11px] ${
@@ -1052,7 +1019,7 @@ export default function CalendarPage() {
                   ? "text-danger-ink"
                   : state.kind === "early_close"
                     ? "text-amber-ink"
-                    : "text-mute"
+                    : "text-muted-foreground"
               }`}
             >
               {state.kind ? describe(state.kind, hover.key, state.time, tz) : "无休市安排"}
@@ -1063,12 +1030,12 @@ export default function CalendarPage() {
               </p>
             ))}
             {items.slice(0, 4).map((e, i) => (
-              <p key={`${e.at}-${i}`} className={`mt-0.5 ${e.impact === "high" ? "text-danger-ink" : "text-mute"}`}>
+              <p key={`${e.at}-${i}`} className={`mt-0.5 ${e.impact === "high" ? "text-danger-ink" : "text-muted-foreground"}`}>
                 <span className="num mr-1">{clockInZone(e.at, tz, hover.key)}</span>
                 {e.country} {e.title}
               </p>
             ))}
-            {items.length > 4 && <p className="mt-0.5 text-[11px] text-mute">还有 {items.length - 4} 条…</p>}
+            {items.length > 4 && <p className="mt-0.5 text-[11px] text-muted-foreground">还有 {items.length - 4} 条…</p>}
           </div>
         );
       })()}

@@ -6,6 +6,7 @@ import { api, type Alert } from "./lib/api";
 import { hmBJ, hmIn, periodLabel } from "./lib/format";
 import { applyUiPrefs, loadUiPrefs } from "./lib/ui-prefs";
 import "./styles.css";
+import { Button } from "./components/ui/button";
 
 applyUiPrefs(loadUiPrefs());
 
@@ -38,7 +39,7 @@ function Toast() {
       onMouseEnter={hold}
       onMouseLeave={release}
       role="status"
-      className="flex h-full flex-col overflow-hidden bg-surface [animation:toast-in_.3s_cubic-bezier(.2,.8,.2,1)]"
+      className="flex h-full flex-col overflow-hidden bg-card text-foreground [animation:toast-in_.3s_cubic-bezier(.2,.8,.2,1)]"
     >
       {alert.risk && (
         <div className="bg-danger-solid px-4 py-1 text-xs font-medium text-white" title={alert.risk}>
@@ -65,16 +66,16 @@ function Toast() {
           </b>
           <span className="num text-[26px] font-semibold">{hmBJ(alert.at)}</span>
         </div>
-        <p className="mb-2 text-[12.5px] text-mute">
+        <p className="mb-2 text-[12.5px] text-muted-foreground">
           芝加哥 {hmIn(alert.at, "America/Chicago")} · {alert.session}
         </p>
         <div className="flex justify-end gap-2">
-          <button onClick={() => api.pause(15).then(close)} className="rounded-lg bg-soft px-3 py-1 text-[12.5px]">
+          <Button size="sm" variant="secondary" onClick={() => api.pause(15).then(close)}>
             暂停 15 分钟
-          </button>
-          <button onClick={close} className="rounded-lg bg-amber px-3 py-1 text-[12.5px] font-medium text-on-amber">
+          </Button>
+          <Button size="sm" onClick={close}>
             已看
-          </button>
+          </Button>
         </div>
       </div>
       <div className="h-[3px] origin-left bg-amber" style={{ animation: `life ${life}s linear forwards` }} />

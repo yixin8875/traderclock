@@ -1,8 +1,10 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState } from "react";
 import { listen } from "@tauri-apps/api/event";
+import { RefreshCw } from "lucide-react";
 import { api, type Impact, type NewsInfo } from "../lib/api";
 import { hmBJ } from "../lib/format";
-import { Group, Row, Switch } from "../components/ui";
+import { ChoiceGroup, Group, MultiChoiceGroup, Row, Switch } from "../components/kit";
+import { Button } from "../components/ui/button";
 import type { PageProps } from "../App";
 
 const IMPACTS: { id: Impact; label: string }[] = [
@@ -42,7 +44,6 @@ export default function NewsPage({ cfg, save }: PageProps) {
       .finally(() => setBusy(false));
   };
 
-  const toggle = <T,>(list: T[], v: T) => (list.includes(v) ? list.filter((x) => x !== v) : [...list, v]);
   const currencies = [...new Set(["USD", ...(info?.currencies ?? []), ...cfg.news_currencies])].sort();
 
   const updated = info?.state.updated;
@@ -66,40 +67,38 @@ export default function NewsPage({ cfg, save }: PageProps) {
           <Switch checked={cfg.news_enabled} label="启用财经日历提醒" onChange={(v) => save({ ...cfg, news_enabled: v })} />
         </Row>
         <Row label="关注币种" hint="USD 数据会影响黄金和美股指数">
-          <div className="flex flex-wrap justify-end gap-1.5">
-            {currencies.map((c) => (
-              <Chip key={c} on={cfg.news_currencies.includes(c)} onClick={() => save({ ...cfg, news_currencies: toggle(cfg.news_currencies, c) })}>
-                {c}
-              </Chip>
-            ))}
+          <div className="flex flex-wrap justify-end">
+            <MultiChoiceGroup<string>
+              label="关注币种"
+              options={currencies.map((c) => ({ value: c, label: c }))}
+              values={cfg.news_currencies}
+              onChange={(next) => save({ ...cfg, news_currencies: next })}
+            />
           </div>
         </Row>
         <Row label="重要程度">
-          <div className="flex gap-1.5">
-            {IMPACTS.map((i) => (
-              <Chip key={i.id} on={cfg.news_impacts.includes(i.id)} onClick={() => save({ ...cfg, news_impacts: toggle(cfg.news_impacts, i.id) })}>
-                {i.label}
-              </Chip>
-            ))}
-          </div>
+          <MultiChoiceGroup
+            label="重要程度"
+            options={IMPACTS.map((i) => ({ value: i.id as Impact, label: i.label }))}
+            values={cfg.news_impacts}
+            onChange={(next) => save({ ...cfg, news_impacts: next })}
+          />
         </Row>
         <Row label="提前提醒">
-          <div className="flex gap-1.5">
-            {LEADS.map((m) => (
-              <Chip key={m} on={cfg.news_lead_minutes === m} onClick={() => save({ ...cfg, news_lead_minutes: m })}>
-                {m === 0 ? "准点" : `${m} 分钟`}
-              </Chip>
-            ))}
-          </div>
+          <ChoiceGroup
+            label="提前提醒"
+            options={LEADS.map((m) => ({ value: m, label: m === 0 ? "准点" : `${m} 分钟` }))}
+            value={cfg.news_lead_minutes}
+            onChange={(news_lead_minutes) => save({ ...cfg, news_lead_minutes })}
+          />
         </Row>
         <Row label="高重要度额外预警" hint="非农、CPI 等在常规提醒之外更早再提醒一次">
-          <div className="flex gap-1.5">
-            {PREWARN.map((m) => (
-              <Chip key={m} on={cfg.news_prewarn_minutes === m} onClick={() => save({ ...cfg, news_prewarn_minutes: m })}>
-                {m === 0 ? "关闭" : `${m} 分钟`}
-              </Chip>
-            ))}
-          </div>
+          <ChoiceGroup
+            label="高重要度额外预警"
+            options={PREWARN.map((m) => ({ value: m, label: m === 0 ? "关闭" : `${m} 分钟` }))}
+            value={cfg.news_prewarn_minutes}
+            onChange={(news_prewarn_minutes) => save({ ...cfg, news_prewarn_minutes })}
+          />
         </Row>
       </Group>
 
@@ -108,50 +107,50 @@ export default function NewsPage({ cfg, save }: PageProps) {
           <Switch checked={cfg.risk_enabled} label="启用风险窗口" onChange={(v) => save({ ...cfg, risk_enabled: v })} />
         </Row>
         <Row label="公布前">
-          <div className="flex gap-1.5">
-            {RISK_MIN.map((m) => (
-              <Chip key={m} on={cfg.risk_before_minutes === m} onClick={() => save({ ...cfg, risk_before_minutes: m })}>
-                {m} 分钟
-              </Chip>
-            ))}
-          </div>
+          <ChoiceGroup
+            label="风险窗口公布前"
+            options={RISK_MIN.map((m) => ({ value: m, label: `${m} 分钟` }))}
+            value={cfg.risk_before_minutes}
+            onChange={(risk_before_minutes) => save({ ...cfg, risk_before_minutes })}
+          />
         </Row>
         <Row label="公布后">
-          <div className="flex gap-1.5">
-            {RISK_MIN.map((m) => (
-              <Chip key={m} on={cfg.risk_after_minutes === m} onClick={() => save({ ...cfg, risk_after_minutes: m })}>
-                {m} 分钟
-              </Chip>
-            ))}
-          </div>
+          <ChoiceGroup
+            label="风险窗口公布后"
+            options={RISK_MIN.map((m) => ({ value: m, label: `${m} 分钟` }))}
+            value={cfg.risk_after_minutes}
+            onChange={(risk_after_minutes) => save({ ...cfg, risk_after_minutes })}
+          />
         </Row>
       </Group>
 
       <div className="mb-2 flex items-center justify-between">
-        <span className={`text-[12.5px] ${info?.state.error ? "text-danger-ink" : "text-mute"}`}>{msg || status}</span>
-        <button
-          onClick={refresh}
-          disabled={busy}
-          className="rounded-lg border border-line bg-soft px-3 py-1 text-[12.5px] hover:bg-hover disabled:opacity-50"
-        >
+        <span className={`text-[12.5px] ${info?.state.error ? "text-destructive-foreground" : "text-muted-foreground"}`}>
+          {msg || status}
+        </span>
+        <Button disabled={busy} size="xs" variant="outline" onClick={refresh}>
+          <RefreshCw className={busy ? "animate-spin" : undefined} />
           {busy ? "更新中…" : "立即更新"}
-        </button>
+        </Button>
       </div>
 
       {byDay.size === 0 ? (
-        <p className="py-6 text-center text-[13px] text-mute">本周暂无符合条件的数据</p>
+        <p className="py-6 text-center text-[13px] text-muted-foreground">本周暂无符合条件的数据</p>
       ) : (
         [...byDay].map(([day, list]) => (
           <Group key={day} title={day}>
             {list.map((e) => (
-              <div key={e.at + e.title} className="grid grid-cols-[52px_12px_1fr_auto] items-center gap-2 py-2.5 text-[12.5px]">
+              <div
+                key={e.at + e.title}
+                className="grid grid-cols-[52px_12px_1fr_auto] items-center gap-2 border-b border-border py-2.5 text-[12.5px] last:border-b-0"
+              >
                 <span className="num font-semibold">{hmBJ(e.at)}</span>
                 <i className={`h-2 w-2 rounded-full ${DOT[e.impact]}`} title={IMPACTS.find((i) => i.id === e.impact)?.label} />
                 <span>
-                  <span className="mr-1.5 text-mute">{e.country}</span>
+                  <span className="mr-1.5 text-muted-foreground">{e.country}</span>
                   {e.title}
                 </span>
-                <span className="num text-[12px] text-mute">
+                <span className="num text-[12px] text-muted-foreground">
                   {e.forecast && `预期 ${e.forecast}`}
                   {e.previous && ` · 前值 ${e.previous}`}
                 </span>
@@ -160,19 +159,7 @@ export default function NewsPage({ cfg, save }: PageProps) {
           </Group>
         ))
       )}
-      <p className="mt-2 text-[12px] text-mute">时间为北京时间。数据可能临时改期，以 ForexFactory 网站为准。</p>
+      <p className="mt-2 text-[12px] text-muted-foreground">时间为北京时间。数据可能临时改期，以 ForexFactory 网站为准。</p>
     </>
-  );
-}
-
-function Chip({ on, onClick, children }: { on: boolean; onClick: () => void; children: ReactNode }) {
-  return (
-    <button
-      onClick={onClick}
-      aria-pressed={on}
-      className={`rounded-md px-2.5 py-1 text-[12px] ${on ? "bg-ink font-medium text-on-ink" : "bg-soft text-mute hover:text-ink"}`}
-    >
-      {children}
-    </button>
   );
 }

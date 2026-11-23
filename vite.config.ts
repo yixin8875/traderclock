@@ -7,6 +7,9 @@ import { resolve } from "node:path";
 // 浮窗只打包自己用到的代码，打开更快、占用更少。
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  resolve: {
+    alias: { "@": resolve(__dirname, "src") },
+  },
   clearScreen: false,
   server: {
     port: 1420,

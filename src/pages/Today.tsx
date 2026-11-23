@@ -2,7 +2,8 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { listen } from "@tauri-apps/api/event";
 import { api, type Alert, type Band, type Mark, type Status, type Today } from "../lib/api";
 import { countdown, hmBJ, hmIn, periodLabel } from "../lib/format";
-import { DstBadge, PageHead } from "../components/ui";
+import { DstBadge, PageHead } from "../components/kit";
+import { Button } from "../components/ui/button";
 import type { PageProps } from "../App";
 
 const DAY = 86_400_000;
@@ -75,11 +76,11 @@ export default function TodayPage({ cfg }: PageProps) {
       />
 
       <section className="mb-6 grid grid-cols-[auto_minmax(0,1fr)_auto] items-end gap-x-6">
-        <div className={`num text-[60px] font-semibold leading-[0.85] tracking-[-0.02em] ${hot ? "text-amber-ink" : "text-ink"}`}>
+        <div className={`num text-[60px] font-semibold leading-[0.85] tracking-[-0.02em] ${hot ? "text-amber-ink" : "text-foreground"}`}>
           {next ? countdown(left) : "--:--"}
         </div>
         <div className="min-w-0 pb-0.5">
-          <div className="mb-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] text-mute">
+          <div className="mb-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] text-muted-foreground">
             {chip && (
               <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium ${chip.tone}`}>
                 <i className="h-1.5 w-1.5 rounded-full bg-current" />
@@ -88,54 +89,56 @@ export default function TodayPage({ cfg }: PageProps) {
             )}
             <span>{paused ? `已暂停至 ${hmBJ(status!.paused_until!)}` : "距离下次提醒"}</span>
           </div>
-          <p className="truncate text-[16px] font-medium leading-6 text-ink">{next ? describe(next) : "未来 10 天无提醒"}</p>
-          <p className="mt-0.5 text-[12px] text-mute">
+          <p className="truncate text-[16px] font-medium leading-6 text-foreground">{next ? describe(next) : "未来 10 天无提醒"}</p>
+          <p className="mt-0.5 text-[12px] text-muted-foreground">
             {next ? `${next.session} · ` : ""}芝加哥 {hmIn(now, "America/Chicago")}
           </p>
         </div>
         <div className="flex flex-col items-end gap-1.5 pb-0.5">
-          <button
-            type="button"
-            onClick={togglePause}
-            className={`h-8 rounded-lg px-3 text-[12.5px] ${
-              paused ? "bg-amber font-medium text-on-amber hover:opacity-90" : "border border-line text-ink hover:bg-soft"
-            }`}
-          >
+          <Button className="h-8 px-3 text-[12.5px]" size="sm" variant={paused ? "default" : "outline"} onClick={togglePause}>
             {paused ? "恢复提醒" : "暂停 15 分钟"}
-          </button>
+          </Button>
           {!paused && (
-            <button type="button" onClick={pauseToday} className="text-[11.5px] text-mute hover:text-ink">
+            <Button
+              className="h-auto p-0 text-[11.5px] text-muted-foreground"
+              size="xs"
+              variant="link"
+              onClick={pauseToday}
+            >
               今天不再提醒
-            </button>
+            </Button>
           )}
         </div>
       </section>
 
       {today && <Timeline today={today} now={now} />}
 
-      <div className="mb-1 flex items-baseline justify-between border-b border-line pb-2">
-        <h2 className="text-[13px] font-medium text-ink">接下来</h2>
-        <span className="text-[11.5px] text-mute">北京时间</span>
+      <div className="mb-1 flex items-baseline justify-between border-b border-border pb-2">
+        <h2 className="text-[13px] font-medium text-foreground">接下来</h2>
+        <span className="text-[11.5px] text-muted-foreground">北京时间</span>
       </div>
       {upcoming.length === 0 ? (
-        <p className="py-8 text-center text-[13px] text-mute">未来 10 天暂无提醒</p>
+        <p className="py-8 text-center text-[13px] text-muted-foreground">未来 10 天暂无提醒</p>
       ) : (
         <ul>
           {upcoming.map((a) => {
             const rel = new Date(a.at).getTime() - now;
             const soon = rel < 10 * 60_000;
             return (
-              <li key={a.fire_at} className="grid grid-cols-[56px_1fr_auto] items-baseline gap-x-4 border-b border-line py-3 last:border-b-0">
+              <li
+                key={a.fire_at}
+                className="grid grid-cols-[56px_1fr_auto] items-baseline gap-x-4 border-b border-border py-3 last:border-b-0"
+              >
                 <span className="flex flex-col leading-tight">
                   <span className="num text-[16px] font-semibold">{hmBJ(a.at)}</span>
-                  <span className="mt-0.5 text-[11px] text-mute">{dayLabel(a.at, now)}</span>
+                  <span className="mt-0.5 text-[11px] text-muted-foreground">{dayLabel(a.at, now)}</span>
                 </span>
                 <span className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-[12.5px] leading-5">
                   {a.rolls.map((r) => (
                     <span key={r} className="font-medium text-roll-ink">{r}</span>
                   ))}
                   {a.bars.map((b) => (
-                    <span key={b} className="text-mute">{periodLabel(b)} 收盘</span>
+                    <span key={b} className="text-muted-foreground">{periodLabel(b)} 收盘</span>
                   ))}
                   {a.keys.map((k) => (
                     <span key={k} className="font-medium text-amber-ink">{k}</span>
@@ -151,8 +154,10 @@ export default function TodayPage({ cfg }: PageProps) {
                   )}
                 </span>
                 <span className="text-right leading-tight">
-                  <span className={`num block text-[12px] ${soon ? "font-medium text-amber-ink" : "text-mute"}`}>{relLabel(rel)}</span>
-                  <span className="mt-0.5 block text-[11px] text-mute">{a.session}</span>
+                  <span className={`num block text-[12px] ${soon ? "font-medium text-amber-ink" : "text-muted-foreground"}`}>
+                    {relLabel(rel)}
+                  </span>
+                  <span className="mt-0.5 block text-[11px] text-muted-foreground">{a.session}</span>
                 </span>
               </li>
             );
@@ -168,7 +173,7 @@ function statusChip(status: Status | null, today: Today | null, now: number, pau
   if (paused) return { label: "已暂停", tone: "bg-amber-soft text-amber-ink" };
   if (!status) return null;
   if (today?.day_note) {
-    const tone = today.day_note === "未启用品种" ? "bg-amber-soft text-amber-ink" : "bg-soft text-mute";
+    const tone = today.day_note === "未启用品种" ? "bg-amber-soft text-amber-ink" : "bg-muted text-muted-foreground";
     return { label: today.day_note, tone };
   }
   if (status.open) return { label: "交易中", tone: "bg-success-soft text-success-ink" };
@@ -176,10 +181,13 @@ function statusChip(status: Status | null, today: Today | null, now: number, pau
     const end = today.closed.find((b) => Date.parse(b.start) <= now && now < Date.parse(b.end))?.end;
     if (end) {
       const dayEnd = Date.parse(today.day_start) + DAY;
-      return { label: `休市至 ${Date.parse(end) >= dayEnd - 1000 ? "24:00" : hmBJ(end)}`, tone: "bg-soft text-mute" };
+      return {
+        label: `休市至 ${Date.parse(end) >= dayEnd - 1000 ? "24:00" : hmBJ(end)}`,
+        tone: "bg-muted text-muted-foreground",
+      };
     }
   }
-  return { label: "休市", tone: "bg-soft text-mute" };
+  return { label: "休市", tone: "bg-muted text-muted-foreground" };
 }
 
 function describe(a: Alert) {
@@ -289,31 +297,31 @@ function Timeline({ today, now }: { today: Today; now: number }) {
     <div ref={ref} className="relative mb-6 mt-1" style={{ height }} role="group" aria-label="今日时间轴（北京时间）">
       {/* 每 3 小时一条参考线，读时间时不用反复对照底轴 */}
       {Array.from({ length: 9 }, (_, i) => i * 3).map((h) => (
-        <i key={h} className="absolute w-px bg-line" style={{ left: GUTTER + (h / 24) * plotW, top: TOP, height: axisY - TOP }} />
+        <i key={h} className="absolute w-px bg-border" style={{ left: GUTTER + (h / 24) * plotW, top: TOP, height: axisY - TOP }} />
       ))}
 
       {SESSION_ROWS.map((name, i) => (
         <span
           key={name}
-          className="absolute flex w-11 items-center gap-1.5 text-[11px] text-mute"
+          className="absolute flex w-11 items-center gap-1.5 text-[11px] text-muted-foreground"
           style={{ top: rowY[i] + ROW_H / 2, left: 0, transform: "translateY(-50%)" }}
         >
-          <i className={`h-2 w-2 flex-none rounded-[2px] ring-1 ring-inset ring-ink/10 ${BAND_BG[name]}`} />
+          <i className={`h-2 w-2 flex-none rounded-[2px] ring-1 ring-inset ring-foreground/10 ${BAND_BG[name]}`} />
           {name}
         </span>
       ))}
       {today.closed.length > 0 && (
         <span
-          className="absolute flex w-11 items-center gap-1.5 text-[11px] text-mute"
+          className="absolute flex w-11 items-center gap-1.5 text-[11px] text-muted-foreground"
           style={{ top: closedY + EXTRA_H / 2, left: 0, transform: "translateY(-50%)" }}
         >
-          <i className="halt-stripes h-2 w-2 flex-none rounded-[2px] ring-1 ring-line" />
+          <i className="halt-stripes h-2 w-2 flex-none rounded-[2px] ring-1 ring-border" />
           休市
         </span>
       )}
       {today.risks.length > 0 && (
         <span
-          className="absolute flex w-11 items-center gap-1.5 text-[11px] text-mute"
+          className="absolute flex w-11 items-center gap-1.5 text-[11px] text-muted-foreground"
           style={{ top: riskY + EXTRA_H / 2, left: 0, transform: "translateY(-50%)" }}
         >
           <i className="h-2 w-2 flex-none rounded-[2px] bg-danger-solid/25 ring-1 ring-danger-solid/50" />
@@ -381,7 +389,7 @@ function Timeline({ today, now }: { today: Today; now: number }) {
             key={m.name + m.at}
             title={`${m.name} ${hmBJ(m.at)}`}
             className={`absolute -translate-x-1/2 rounded-sm ${
-              m.news ? (m.major ? "bg-news" : "bg-news/55") : m.major ? "bg-ink" : "bg-mark-muted"
+              m.news ? (m.major ? "bg-news" : "bg-news/55") : m.major ? "bg-foreground" : "bg-mark-muted"
             } ${m.enabled ? "" : "opacity-40"}`}
             style={{ left: xOf(m.at), top: axisY - h, width: w, height: h }}
           />
@@ -407,17 +415,17 @@ function Timeline({ today, now }: { today: Today; now: number }) {
         <span
           key={"l" + m.name + m.at}
           title={`${m.name} ${hmBJ(m.at)}`}
-          className={`absolute whitespace-nowrap text-[11px] ${m.enabled ? "text-ink" : "text-mute"}`}
+          className={`absolute whitespace-nowrap text-[11px] ${m.enabled ? "text-foreground" : "text-muted-foreground"}`}
           style={{ left, top: labelsY + lane * LANE_H, lineHeight: `${LANE_H}px` }}
         >
           {m.name}
         </span>
       ))}
 
-      <div className="absolute w-[2px] rounded-full bg-amber" style={{ left: nowX - 1, top: TOP - 2, height: axisY - TOP + 2 }} />
-      <i className="absolute h-2 w-2 rounded-full bg-amber" style={{ left: nowX - 4, top: axisY - 4 }} />
+      <div className="absolute w-[2px] rounded-full bg-primary" style={{ left: nowX - 1, top: TOP - 2, height: axisY - TOP + 2 }} />
+      <i className="absolute h-2 w-2 rounded-full bg-primary" style={{ left: nowX - 4, top: axisY - 4 }} />
       <span
-        className="num absolute -translate-x-1/2 rounded-full bg-surface px-2 text-[10.5px] font-semibold leading-4 text-amber-ink ring-1 ring-amber/30"
+        className="num absolute -translate-x-1/2 rounded-full bg-card px-2 text-[10.5px] font-semibold leading-4 text-amber-ink ring-1 ring-primary/30"
         style={{ left: Math.min(Math.max(nowX, GUTTER + 24), GUTTER + plotW - 24), top: TOP - 18 }}
       >
         {hmBJ(now)}

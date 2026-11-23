@@ -8,9 +8,11 @@
     var dark = theme === "dark" || (theme === "system" && systemDark);
     document.documentElement.dataset.theme = dark ? "dark" : "light";
     document.documentElement.dataset.density = p.density === "compact" ? "compact" : "comfortable";
+    document.documentElement.classList.toggle("dark", dark);
     window.__UI_PREFS__ = p;
   } catch (e) {
     document.documentElement.dataset.theme = "light";
     document.documentElement.dataset.density = "comfortable";
+    document.documentElement.classList.remove("dark");
   }
 })();

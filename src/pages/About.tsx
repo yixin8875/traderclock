@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import type { Update } from "@tauri-apps/plugin-updater";
-import { Group, Row, Switch } from "../components/ui";
+import { Download, RefreshCw } from "lucide-react";
+import { Group, Row, Switch } from "../components/kit";
+import { Alert, AlertDescription } from "../components/ui/alert";
+import { Button } from "../components/ui/button";
 import {
   appVersion,
   autoCheckEnabled,
@@ -12,11 +15,6 @@ import {
   setAutoCheckEnabled,
   type InstallProgress,
 } from "../lib/updater";
-
-const BTN =
-  "rounded-lg border border-line bg-surface px-2.5 py-1 text-[12px] text-ink hover:bg-soft disabled:opacity-50";
-const PRIMARY =
-  "rounded-lg bg-amber px-2.5 py-1 text-[12px] font-medium text-on-amber hover:opacity-90 disabled:opacity-50";
 
 type Phase = "idle" | "checking" | "latest" | "available" | "downloading" | "installing" | "error";
 
@@ -86,71 +84,70 @@ export default function AboutPage() {
           <Switch checked={auto} onChange={toggleAuto} label="自动检查更新" />
         </Row>
         <Row label="检查更新" hint={checkedAt ? `上次检查 ${formatCheckedAt(checkedAt)}` : "尚未检查"}>
-          <button type="button" onClick={runCheck} disabled={phase === "checking"} className={BTN}>
+          <Button disabled={phase === "checking"} size="xs" variant="outline" onClick={runCheck}>
+            <RefreshCw className={phase === "checking" ? "animate-spin" : undefined} />
             {phase === "checking" ? "检查中…" : "立即检查"}
-          </button>
+          </Button>
         </Row>
       </Group>
 
       {phase === "available" && update && (
-        <section className="mb-5 rounded-xl bg-amber-soft px-4 py-3">
-          <div className="flex items-center justify-between gap-3">
+        <Alert className="mb-5" variant="warning">
+          <div className="col-span-full flex items-center justify-between gap-3">
             <div>
-              <p className="text-sm font-semibold text-amber-ink">发现新版本 v{update.version}</p>
-              <p className="mt-0.5 text-[12.5px] text-amber-ink/80">当前版本 v{update.currentVersion}</p>
+              <p className="text-sm font-semibold text-warning-foreground">发现新版本 v{update.version}</p>
+              <p className="mt-0.5 text-[12.5px] text-warning-foreground/80">当前版本 v{update.currentVersion}</p>
             </div>
-            <button type="button" onClick={install} className={PRIMARY}>
+            <Button size="sm" onClick={install}>
+              <Download />
               下载并安装
-            </button>
+            </Button>
           </div>
           {update.body && (
-            <pre className="mt-2 max-h-40 overflow-auto whitespace-pre-wrap rounded-lg bg-surface/70 px-2.5 py-2 text-[12px] leading-5 text-ink">
+            <pre className="col-span-full mt-2 max-h-40 overflow-auto whitespace-pre-wrap rounded-lg bg-background/70 px-2.5 py-2 font-sans text-[12px] leading-5 text-foreground">
               {update.body}
             </pre>
           )}
-        </section>
+        </Alert>
       )}
 
       {phase === "downloading" && (
-        <section className="mb-5 rounded-xl bg-soft px-3.5 py-3" aria-live="polite">
+        <section aria-live="polite" className="mb-5 rounded-xl border border-border bg-card px-3.5 py-3">
           <div className="mb-1.5 flex items-center justify-between text-[12.5px]">
             <span className="font-medium">正在下载更新</span>
-            <span className="num text-mute">
+            <span className="num text-muted-foreground">
               {progress.total
                 ? `${formatBytes(progress.downloaded)} / ${formatBytes(progress.total)}`
                 : formatBytes(progress.downloaded)}
             </span>
           </div>
           <div
-            className="h-1.5 overflow-hidden rounded-full bg-line"
-            role="progressbar"
             aria-valuenow={progress.percent ?? 0}
+            className="h-1.5 overflow-hidden rounded-full bg-border"
+            role="progressbar"
           >
             <div
-              className="h-full w-full origin-left rounded-full bg-amber transition-transform duration-200"
+              className="h-full w-full origin-left rounded-full bg-primary transition-transform duration-200"
               style={{ transform: `scaleX(${(progress.percent ?? 8) / 100})` }}
             />
           </div>
-          <p className="mt-1.5 text-[12px] text-mute">
+          <p className="mt-1.5 text-[12px] text-muted-foreground">
             {progress.percent !== undefined ? `${progress.percent}%` : "下载中…"} · 完成后会自动安装并重启
           </p>
         </section>
       )}
 
       {(phase === "latest" || phase === "installing" || phase === "error") && (
-        <p
-          role={phase === "error" ? "alert" : "status"}
-          className={`mb-5 rounded-lg px-3 py-2 text-[13px] leading-5 ${
-            phase === "error" ? "bg-danger-soft text-danger-ink" : "bg-soft text-mute"
-          }`}
-        >
-          {phase === "latest" && "已是最新版本"}
-          {phase === "installing" && message}
-          {phase === "error" && message}
-        </p>
+        <Alert className="mb-5 py-2" variant={phase === "error" ? "error" : "default"}>
+          <AlertDescription className="text-[13px] leading-5">
+            {phase === "latest" && "已是最新版本"}
+            {phase === "installing" && message}
+            {phase === "error" && message}
+          </AlertDescription>
+        </Alert>
       )}
 
-      <p className="text-[12.5px] leading-5 text-mute">
+      <p className="text-[12.5px] leading-5 text-muted-foreground">
         更新包来自 GitHub Releases（yixin8875/traderclock），下载后会用内置公钥校验签名，校验不通过不会安装。
         <br />
         首次使用建议保留自动检查更新；手动安装的版本也能收到后续更新。

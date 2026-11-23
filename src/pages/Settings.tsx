@@ -7,6 +7,7 @@ import AlertsPage from "./Alerts";
 import GeneralPage from "./General";
 import DataPage from "./Data";
 import AboutPage from "./About";
+import { Tabs, TabsList, TabsTab } from "../components/ui/tabs";
 import type { PageProps } from "../App";
 
 const TABS = [
@@ -31,23 +32,15 @@ export default function SettingsPage({
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <nav className="mb-5 flex flex-wrap items-center gap-1 border-b border-line pb-3" aria-label="设置分类">
-        {TABS.map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            onClick={() => setTab(t.id)}
-            aria-current={tab === t.id ? "page" : undefined}
-            className={`settings-tab rounded-lg px-2.5 py-1.5 text-[12.5px] transition-colors ${
-              tab === t.id
-                ? "bg-surface font-medium text-ink shadow-[0_1px_2px_rgba(20,30,45,.08)]"
-                : "text-mute hover:text-ink"
-            }`}
-          >
-            {t.label}
-          </button>
-        ))}
-      </nav>
+      <Tabs className="mb-5" value={tab} onValueChange={(next) => setTab(next as SettingsTabId)}>
+        <TabsList aria-label="设置分类" className="flex-wrap">
+          {TABS.map((t) => (
+            <TabsTab key={t.id} className="settings-tab px-2.5 text-[12.5px]" value={t.id}>
+              {t.label}
+            </TabsTab>
+          ))}
+        </TabsList>
+      </Tabs>
       <div className="min-h-0 flex-1 overflow-auto pr-2">
         <Active {...props} />
       </div>
